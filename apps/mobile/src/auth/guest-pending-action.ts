@@ -22,6 +22,12 @@ export type GuestPendingActionPhase =
   /** Exact edited member clarification is saved before idempotent registration. */
   | "member_register_pending"
   | "member_claimed"
+  /** A claimed action is held because its required trial/funding prerequisite is missing. Never a dismissal. */
+  | "funding_pending"
+  /** A definitive server funding denial (402/403). Known, not unknown; retained for an explicit re-engagement. */
+  | "funding_denied"
+  /** A funding grant outcome is unknown. Resolve by replaying the same idempotent grant; never auto-resent. */
+  | "funding_reconcile"
   | "resume_pending"
   /** The original continuation may be reconciled, but can never be resent. */
   | "resume_reconcile"
@@ -144,8 +150,13 @@ export type GuestPendingActionRejectionOutcome =
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const digest = /^[a-f0-9]{64}$/;
 const phases = new Set<GuestPendingActionPhase>([
-  "pending_auth", "authenticating", "authenticated", "claim_pending", "claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched", "dismissed", "cancelled", "rejected", "expired",
+  "pending_auth", "authenticating", "authenticated", "claim_pending", "claim_reconcile", "claimed", "member_register_pending", "member_claimed", "funding_pending", "funding_denied", "funding_reconcile", "resume_pending", "resume_reconcile", "dispatched", "dismissed", "cancelled", "rejected", "expired",
 ]);
+/** Held funding states retain the exact claim but never auto-continue. */
+const fundingPhases: readonly GuestPendingActionPhase[] = ["funding_pending", "funding_denied", "funding_reconcile"];
+export function isFundingPhase(phase: GuestPendingActionPhase): boolean {
+  return (fundingPhases as readonly string[]).includes(phase);
+}
 const actionKeys: Record<GuestPendingActionKind, readonly string[]> = {
   new_research: ["kind", "text"],
   follow_up: ["kind", "text", "parentRunId"],
@@ -231,8 +242,9 @@ export function readGuestPendingAction(value: unknown): GuestPendingAction {
   if (intent.payloadDigest !== sha256Hex(canonicalPayload(payload)) || Date.parse(intent.expiresAt) <= Date.parse(intent.createdAt) || Date.parse(intent.expiresAt) - Date.parse(intent.createdAt) > GUEST_PENDING_ACTION_MAX_AGE_MS) invalid();
   if ((intent.phase === "authenticating" && intent.authAttempt === null) ||
     (intent.authAttempt !== null && !["authenticating", "authenticated", "claim_pending", "claim_reconcile"].includes(intent.phase)) ||
-    (["authenticated", "claim_pending", "claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.authenticatedAccountId === null) ||
-    (["claim_reconcile", "claimed", "member_register_pending", "member_claimed", "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.claim === null) ||
+    (["authenticated", "claim_pending", "claim_reconcile", "claimed", "member_register_pending", "member_claimed", ...fundingPhases, "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.authenticatedAccountId === null) ||
+    (["claim_reconcile", "claimed", "member_register_pending", "member_claimed", ...fundingPhases, "resume_pending", "resume_reconcile", "dispatched"].includes(intent.phase) && intent.claim === null) ||
+    (fundingPhases.includes(intent.phase) && (intent.authAttempt !== null || intent.autoResume || intent.dispatchReceiptId !== null || intent.memberRunId !== null || intent.memberConversationId !== null || intent.rejectionCode !== null)) ||
     (intent.claim !== null && (intent.authenticatedAccountId === null || intent.claim.accountId !== intent.authenticatedAccountId)) ||
     (intent.phase === "dispatched") !== (intent.dispatchReceiptId !== null) ||
     (intent.phase === "dispatched") !== (intent.memberRunId !== null) ||
@@ -350,7 +362,7 @@ export function expireGuestPendingAction(intent: GuestPendingAction, now: Date):
   const checked = readGuestPendingAction(intent);
   // Reconcile-only is already the post-expiry state. Re-expiring it must not
   // erase the sole IDs that can correlate a delayed server outcome.
-  if (isTerminal(checked) || ["claim_reconcile", "resume_reconcile"].includes(checked.phase) || !pendingActionExpired(checked, now)) return checked;
+  if (isTerminal(checked) || ["claim_reconcile", "resume_reconcile", "funding_reconcile"].includes(checked.phase) || !pendingActionExpired(checked, now)) return checked;
   // A claim or continuation may already have reached the API. Preserve only
   // its existing IDs/bindings in a reconcile-only state; no retry can mint a
   // replacement request or submission identity.
@@ -360,13 +372,13 @@ export function expireGuestPendingAction(intent: GuestPendingAction, now: Date):
 }
 
 /**
- * A claim or continuation may have reached the server before its reply was
- * lost. A reconcile-only record can resolve that original ID, never send a
- * replacement action.
+ * A claim, continuation, or funding grant may have reached the server before
+ * its reply was lost. A reconcile-only record can resolve that original ID,
+ * never send a replacement action.
  */
 export function guestPendingActionNeedsReconciliation(intent: GuestPendingAction, now: Date): boolean {
   const checked = readGuestPendingAction(intent);
-  return ["claim_reconcile", "resume_reconcile"].includes(checked.phase) && pendingActionExpired(checked, now) && !checked.autoResume;
+  return ["claim_reconcile", "resume_reconcile", "funding_reconcile"].includes(checked.phase) && pendingActionExpired(checked, now) && !checked.autoResume;
 }
 
 export function beginGuestAuth(intent: GuestPendingAction, attempt: { id: Uuid; provider: GuestAuthProvider }, now: Date): GuestPendingAction {
@@ -398,6 +410,11 @@ export function dismissGuestPendingAction(intent: GuestPendingAction, now: Date)
   if (isTerminal(checked)) return checked;
   if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
   if (checked.phase === "pending_auth" || checked.phase === "authenticating") return persisted({ ...checked, phase: "dismissed", autoResume: false, authAttempt: null });
+  // A deliberate dismissal of a held funding state returns to the exact claimed
+  // phase with autoResume off, so it is never confused with "missing
+  // prerequisite" (funding_pending) or "unknown outcome" (funding_reconcile).
+  if (checked.phase === "funding_pending" || checked.phase === "funding_denied")
+    return persisted({ ...checked, phase: checked.payload.kind === "clarification" ? "member_claimed" : "claimed", autoResume: false });
   return persisted({ ...checked, autoResume: false });
 }
 
@@ -415,13 +432,56 @@ export function cancelGuestPendingAction(intent: GuestPendingAction, now: Date):
 /**
  * A fresh explicit Send may resume a dismissed handoff without changing its
  * submission or accepted claim identity. A pending claim keeps its original
- * request ID; no second claim or continuation ID is minted here.
+ * request ID; no second claim or continuation ID is minted here. A held
+ * funding state reopens to the exact claimed phase only after the caller has
+ * confirmed an eligible grant; the claim identity is untouched.
  */
 export function reopenGuestPendingAction(intent: GuestPendingAction, now: Date): GuestPendingAction {
-  const checked = current(intent, ["dismissed", "authenticated", "claim_pending", "claimed", "member_register_pending", "member_claimed", "resume_pending"], now);
+  const checked = current(intent, ["dismissed", "authenticated", "claim_pending", "claimed", "member_register_pending", "member_claimed", "funding_pending", "funding_denied", "funding_reconcile", "resume_pending"], now);
   if (checked.autoResume) throw new Error("This saved sign-in action has not been dismissed.");
   if (checked.phase === "dismissed") return persisted({ ...checked, phase: "pending_auth", autoResume: true });
+  if (isFundingPhase(checked.phase))
+    return persisted({ ...checked, phase: checked.payload.kind === "clarification" ? "member_claimed" : "claimed", autoResume: true });
   return persisted({ ...checked, autoResume: true });
+}
+
+/**
+ * Missing prerequisite: the claimed action is retained exactly, but automatic
+ * continuation is off. This is NOT a dismissal and NOT an unknown outcome; an
+ * explicit consent plus an eligible server grant can reopen it and run the
+ * single continuation. No identity is minted or cleared here.
+ */
+export function requireGuestActionFunding(intent: GuestPendingAction, now: Date): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
+  if (!(["claimed", "member_claimed", "claim_pending", "resume_pending"].includes(checked.phase)) || !checked.claim || checked.authenticatedAccountId === null)
+    throw new Error("Only a claimed action can be held for funding.");
+  return persisted({ ...checked, phase: "funding_pending", autoResume: false, authAttempt: null });
+}
+
+/**
+ * Definitive server funding denial (402/403). This is known, not unknown, so
+ * the exact claim is retained for an explicit re-engagement after funding
+ * rather than being reconciled as an uncertain outcome or dismissed.
+ */
+export function denyGuestActionFunding(intent: GuestPendingAction, now: Date): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (pendingActionExpired(checked, now)) return expireGuestPendingAction(checked, now);
+  if (!(["claimed", "member_claimed", "resume_pending", "funding_pending"].includes(checked.phase)) || !checked.claim || checked.authenticatedAccountId === null)
+    throw new Error("Only a claimed action can record a funding denial.");
+  return persisted({ ...checked, phase: "funding_denied", autoResume: false, authAttempt: null });
+}
+
+/**
+ * Unknown funding grant outcome. The grant may have been accepted server-side,
+ * so the journal is held reconcile-only; the same idempotent grant identity is
+ * replayed to resolve it, and no replacement action is ever sent.
+ */
+export function holdGuestFundingForReconciliation(intent: GuestPendingAction): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (!(["claimed", "member_claimed", "funding_pending", "funding_denied"].includes(checked.phase)) || !checked.claim)
+    throw new Error("Only a claimed or held funding action can be reconciled.");
+  return persisted({ ...checked, phase: "funding_reconcile", autoResume: false });
 }
 export function beginGuestClaim(intent: GuestPendingAction, requestId: Uuid, now: Date): GuestPendingAction {
   const checked = current(intent, ["authenticated"], now);

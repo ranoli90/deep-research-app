@@ -639,7 +639,7 @@ it("C-CONSENT-02 real 403 consent_required on resume retains the claim and conti
   await act(async () => { renderer.unmount(); });
 });
 
-it("C-CONSENT-03 real 402 funding denial dismisses distinctly and never auto-resumes", async () => {
+it("C-CONSENT-03 real 402 funding denial is held distinctly (not a dismissal) and only re-engages after explicit consent", async () => {
   const text = "What about battery life?";
   await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
   await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: text, consentGranted: true, routeMode: "controlled-research" });
@@ -667,20 +667,27 @@ it("C-CONSENT-03 real 402 funding denial dismisses distinctly and never auto-res
   const renderer = await mountWith(memberAuth);
   await vi.waitFor(() => expect(resumes).toBe(1));
   await vi.waitFor(() => expect(allText(renderer)).toMatch(/allowance/i));
-  // Dismissal of an in-flight continuation keeps its exact phase but disables
-  // automatic continuation; funding can continue it later, consent cannot.
-  const dismissed = (await held.device.load()).pendingAction;
-  expect(dismissed?.phase).toBe("resume_pending");
-  expect(dismissed?.autoResume).toBe(false);
-  expect(dismissed?.submissionId).toBe(id(380));
-  // Consent afterwards must not resurrect the funding-denied action: no
-  // resume, and no funding grant for a journal that cannot auto-continue.
+  // A definitive 402 is a KNOWN funding denial, recorded distinctly from a
+  // dismissal and from an unknown outcome. The exact submission and claim are
+  // preserved, autoResume is off, and nothing is auto-resent.
+  const denied = (await held.device.load()).pendingAction;
+  expect(denied?.phase).toBe("funding_denied");
+  expect(denied?.autoResume).toBe(false);
+  expect(denied?.submissionId).toBe(id(380));
+  const deniedClaimRequestId = denied?.claim?.requestId;
+  expect(typeof deniedClaimRequestId).toBe("string");
+  expect(resumes).toBe(1);
+  expect(calls.filter((c) => c.path === "/v1/entitlements/new-member-grant")).toHaveLength(0);
+  // An explicit member consent re-engages the identical action: the same
+  // claim-keyed idempotent grant, then one more continuation attempt. It is
+  // never an automatic resend.
   await act(async () => { headerOf(renderer).props.onSettings(); });
   await act(async () => { await panelOf(renderer).props.onConsent(); });
-  await act(async () => { await Promise.resolve(); });
-  expect(resumes).toBe(1);
-  expect(calls.filter((c) => c.method === "POST" && c.path === "/v1/consent/member")).toHaveLength(1);
-  expect(calls.filter((c) => c.path === "/v1/entitlements/new-member-grant")).toHaveLength(0);
+  await vi.waitFor(() => expect(calls.filter((c) => c.path === "/v1/entitlements/new-member-grant")).toHaveLength(1));
+  await vi.waitFor(() => expect(resumes).toBe(2));
+  const regrant = calls.find((c) => c.path === "/v1/entitlements/new-member-grant");
+  expect(regrant?.body).toMatchObject({ grantRequestId: deniedClaimRequestId });
+  expect((await held.device.load()).pendingAction?.submissionId).toBe(id(380));
   expect((await held.device.load()).state.draft).toBe(text);
   await act(async () => { renderer.unmount(); });
 });
@@ -907,5 +914,79 @@ it("C-CONSENT-06 funded continuation replays the same grant identity per claim w
   expect(await held.device.load()).toBeNull();
   await act(async () => { headerOf(renderer).props.onDone(); });
   await vi.waitFor(() => expect(composerOf(renderer).props.draft).toBe(""));
+  await act(async () => { renderer.unmount(); });
+});
+
+it("R02 zero-allowance fresh member holds the exact second action as funding (never a dismissal) and an explicit Send completes it once", async () => {
+  const text = "What about battery life?";
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: text, consentGranted: true, routeMode: "controlled-research" });
+  await held.device.savePendingAction(seedAuthingPending(420, 421, text, { kind: "new_research", text }), null);
+  held.session.persistRequired = async () => undefined;
+  // Member consent is already on the server, but the fresh member has ZERO
+  // allowance until the server-owned trial is granted. The claim readback says
+  // budgetAllowed=false; the client must hold the exact action, not dismiss it.
+  let budgetAllowed = false;
+  let resumes = 0;
+  let grants = 0;
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path, body) => {
+    if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return ok({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") {
+      return ok({ submissionId: id(420), authAttemptId: id(421), attemptRevision: 1, state: "authenticating" });
+    }
+    if (method === "POST" && path === "/v1/consent/member" && body?.grant === true) {
+      return ok({ granted: true, consentEpoch: 1, policyVersion: baseContext.consentPolicyVersion, processors: [] });
+    }
+    if (method === "POST" && path === "/v1/entitlements/new-member-grant") {
+      grants++;
+      budgetAllowed = true;
+      return ok({ grantRequestId: body.grantRequestId, accountId: M, amountMicro: body.amountMicro, limitMicro: body.amountMicro, reused: false });
+    }
+    const receipt = { type: "claim_accepted", submissionId: id(420), requestId: body.claimRequestId, accountId: M,
+      conversationId: baseContext.conversationId, conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed,
+      consentPolicyVersion: baseContext.consentPolicyVersion };
+    if (path === "/v1/guest/claim" || path === "/v1/guest/claims/resolve") return ok(receipt);
+    if (path === "/v1/guest/actions/resume") {
+      resumes++;
+      return ok({ type: "continuation_dispatched", submissionId: id(420), claimRequestId: body.claimRequestId, accountId: M,
+        conversationId: baseContext.conversationId, conversationVersion: 1, receiptId: id(422), runId: id(423), memberConversationId: id(424), kind: "new_research" });
+    }
+    if (path === `/v1/runs/${id(423)}`) return ok(queuedSnap(id(423)));
+    if (path === `/v1/runs/${id(423)}/events`) return ok({ events: [] });
+    if (path === "/v1/settings") return ok({ liveRouteEnabled: true });
+    if (method === "POST" && path === "/v1/runs") return ok(admitted(id(425)));
+    if (path === `/v1/runs/${id(425)}`) return ok(queuedSnap(id(425)));
+    if (path === `/v1/runs/${id(425)}/events`) return ok({ events: [] });
+    return ok({});
+  });
+  const renderer = await mountWith(memberAuth);
+  // The zero-allowance claim is held as funding_pending with the exact identity
+  // preserved, NOT dismissed and NOT auto-resent.
+  await vi.waitFor(async () => expect((await held.device.load())?.pendingAction?.phase).toBe("funding_pending"));
+  const pending = (await held.device.load()).pendingAction;
+  expect(pending?.autoResume).toBe(false);
+  expect(pending?.submissionId).toBe(id(420));
+  const claimRequestId = pending?.claim?.requestId;
+  expect(typeof claimRequestId).toBe("string");
+  expect(resumes).toBe(0);
+  expect(grants).toBe(0);
+  // An explicit user Send funds through the idempotent claim-keyed grant and
+  // continues the exact held action exactly once.
+  await act(async () => { headerOf(renderer).props.onDone(); });
+  await act(async () => { await composerOf(renderer).props.onSend(); });
+  await vi.waitFor(() => expect(resumes).toBe(1));
+  expect(grants).toBe(1);
+  const grantCall = calls.find((c) => c.path === "/v1/entitlements/new-member-grant");
+  expect(grantCall?.body).toEqual({ grantRequestId: claimRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO });
+  expect(grantCall?.auth).toBe(`Bearer ${memberToken}`);
+  // Exactly one continuation of the exact held submission; no resend.
+  expect(calls.filter((c) => c.path === "/v1/guest/actions/resume")).toHaveLength(1);
+  await vi.waitFor(async () => expect(await held.device.load()).toBeNull());
+  // The saved-message journal is cleared, so later work is no longer blocked.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  await act(async () => { headerOf(renderer).props.onDone(); });
+  await vi.waitFor(() => expect(composerOf(renderer).props.editable).toBe(true));
   await act(async () => { renderer.unmount(); });
 });

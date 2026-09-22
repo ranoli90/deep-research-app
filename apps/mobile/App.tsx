@@ -46,7 +46,7 @@ import { useClerkGuestAuth, type ClerkGuestAuth } from "./src/auth/clerk-guest-a
 import { GuestSignInSheet, type GuestSignInTransport } from "./src/auth/GuestSignInSheet";
 import { ClerkSessionTaskView } from "./src/auth/ClerkSessionTaskView";
 import { initialGuestSignInSheetState, reduceGuestSignInSheet, type GuestSignInSheetEvent, type GuestSignInSheetState, type GuestProviderAvailability } from "./src/auth/guest-sign-in-sheet-state";
-import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestResumeForConsent, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
+import { beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction, completeGuestAuth, completeGuestClaim, confirmMemberClarificationRegistration, createGuestPendingAction, denyGuestActionFunding, dismissGuestPendingAction, holdGuestAuthAttempt, holdGuestClaimForReconciliation, holdGuestFundingForReconciliation, holdGuestResumeForConsent, holdGuestResumeForReconciliation, markGuestActionDispatched, prepareMemberClarificationReplacement, readGuestPendingAction, reopenGuestPendingAction, requireGuestActionFunding, validateGuestActionResume, type GuestPendingAction, type GuestPendingActionPayload } from "./src/auth/guest-pending-action";
 import { readGuestContext, type GuestContext, type GuestFirstRequest } from "./src/auth/guest-device";
 import { sha256Hex } from "./src/sha256";
 import {
@@ -799,16 +799,26 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       } else if (claim.type !== "claim_accepted" || claim.submissionId !== pending.submissionId || !pending.claim || claim.requestId !== pending.claim.requestId || claim.accountId !== memberAccountId || claim.conversationId !== pending.conversationId || claim.conversationVersion !== pending.conversationVersion || claim.controlVersion !== pending.claim.controlVersion) {
         throw new Error("The saved claim readback did not match this conversation.");
       }
-      if (claim.authorityAllowed !== true || claim.budgetAllowed !== true) {
-        await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
-        throw new Error(claim.budgetAllowed === false ? "Your account needs a research allowance before this saved message can run." : "Current account authority must be confirmed before this saved message can run.");
-      }
       // Guest consent is never member consent. A null or stale member consent
       // version retains the exact claim and presents explicit member-consent
       // UX via the real consent route; resume posts nothing until granted.
       if (claim.consentPolicyVersion == null || claim.consentPolicyVersion !== context.consentPolicyVersion) {
         setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved message. It remains saved and will continue once." }));
         throw new Error("Member consent is required before this saved message can run. The exact saved claim is retained.");
+      }
+      if (claim.authorityAllowed !== true) {
+        // A known authority denial is not a dismissal: retain the exact action
+        // so an explicit re-engagement can resolve it.
+        throw new Error("Current account authority must be confirmed before this saved message can run. The exact saved claim is retained.");
+      }
+      if (claim.budgetAllowed !== true) {
+        // Missing funding prerequisite: a fresh member may legitimately have
+        // zero allowance until the server-owned trial is granted. This is NOT a
+        // dismissal. The exact claim is retained (held, not auto-resumed) so an
+        // explicit consent plus eligible server grant can continue it once.
+        await saveGuestPending(requireGuestActionFunding(pending, new Date()), pending);
+        setStateRaw(s => ({ ...s, tab: "settings", error: "Your account needs a research allowance. Continuing will request the eligible new-member trial; nothing is sent twice." }));
+        throw new Error("Your account needs a research allowance before this saved message can run. The exact saved message is retained.");
       }
     }
     if (!guestPendingRef.current?.autoResume || guestPendingRef.current.submissionId !== pending.submissionId) throw new Error("The saved message was dismissed. Claim remains held; nothing was continued.");
@@ -838,18 +848,21 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     catch (error) {
       const latest = guestPendingRef.current;
       if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Continuation state changed while the server was responding. The original request remains held.");
-      if (error instanceof ApiError && error.status === 402) {
-        await saveGuestPending(dismissGuestPendingAction(latest, new Date()), latest);
-        throw new Error("Your account needs a research allowance. The exact saved second message can be continued after funding; nothing was sent again.");
-      }
-      // A definitive 403 consent_required denial is not an unknown outcome:
-      // the server did not dispatch. Retain the exact claim, present explicit
-      // consent UX, and continue once after the real grant. Unknown outcomes
-      // stay held for reconciliation and are never resent.
+      // A definitive 403 consent_required denial means the server did not
+      // dispatch. Retain the exact claim, present explicit consent UX, and
+      // continue once after the real grant.
       if (error instanceof ApiError && error.status === 403 && error.code === "consent_required") {
         await saveGuestPending(holdGuestResumeForConsent(latest), latest);
         setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved message. It remains saved and will continue once." }));
         throw new Error("Member consent is required before this saved message can run. The exact saved claim is retained.");
+      }
+      // A definitive funding/authority denial (402, or 403 other than consent)
+      // is known, not unknown: retain the exact claim as held-for-funding so an
+      // explicit re-engagement can continue it once. Unknown outcomes stay held
+      // for reconciliation and are never resent.
+      if (error instanceof ApiError && (error.status === 402 || error.status === 403)) {
+        await saveGuestPending(denyGuestActionFunding(latest, new Date()), latest);
+        throw new Error("Your account needs a research allowance. The exact saved second message can be continued after funding; nothing was sent again.");
       }
       await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
       throw new Error("Continuation outcome is unknown. Resolve the saved request; it will not be sent again.");
@@ -967,9 +980,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const receipt = await api.resolveGuestAction(currentToken, pending);
       if (receipt?.type !== "member_action_registered" || receipt.submissionId !== pending.submissionId || receipt.claimRequestId !== claim.requestId ||
         receipt.payloadDigest !== pending.payloadDigest || receipt.controlVersion !== claim.controlVersion) throw new Error("The edited answer registration readback did not match.");
-      if (receipt.authorityAllowed !== true || receipt.budgetAllowed !== true) {
-        await saveGuestPending(dismissGuestPendingAction(pending, new Date()), pending);
-        throw new Error(receipt.budgetAllowed === false ? "Your account needs a research allowance. The edited answer remains saved." : "Member consent or authority is required. The edited answer remains saved.");
+      if (receipt.authorityAllowed !== true) {
+        throw new Error("Member consent or authority is required. The edited answer remains saved.");
       }
       // Member consent missing or outdated retains the exact member_claimed
       // receipt instead of blanket-clearing it; one continuation runs after
@@ -978,6 +990,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       if (receipt.consentPolicyVersion !== pending.consentPolicyVersion || !latestUi.current.consentGranted) {
         setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved answer. It remains saved and will continue once." }));
         throw new Error("Member consent is required before this saved answer can run. The exact saved claim is retained.");
+      }
+      if (receipt.budgetAllowed !== true) {
+        // Missing funding prerequisite, not a dismissal: retain the exact
+        // edited answer so an explicit consent + eligible server grant can
+        // continue it once.
+        await saveGuestPending(requireGuestActionFunding(pending, new Date()), pending);
+        setStateRaw(s => ({ ...s, tab: "settings", error: "Your account needs a research allowance. Continuing will request the eligible new-member trial; nothing is sent twice." }));
+        throw new Error("Your account needs a research allowance. The edited answer remains saved.");
       }
       const epochs = api.sessionEpochs();
       const context = guestContextRef.current;
@@ -996,18 +1016,18 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       catch (error) {
         const latest = guestPendingRef.current;
         if (latest?.submissionId === pending.submissionId && latest.phase === "resume_pending") {
-          if (error instanceof ApiError && error.status === 402) {
-            await saveGuestPending(dismissGuestPendingAction(latest, new Date()), latest);
-          } else if (error instanceof ApiError && error.status === 403 && error.code === "consent_required") {
+          if (error instanceof ApiError && error.status === 403 && error.code === "consent_required") {
             await saveGuestPending(holdGuestResumeForConsent(latest), latest);
             setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved answer. It remains saved and will continue once." }));
+          } else if (error instanceof ApiError && (error.status === 402 || error.status === 403)) {
+            await saveGuestPending(denyGuestActionFunding(latest, new Date()), latest);
           } else {
             await saveGuestPending(holdGuestResumeForReconciliation(latest), latest);
           }
         }
         if (error instanceof ApiError && error.status === 403 && error.code === "consent_required")
           throw new Error("Member consent is required before this saved answer can run. The exact saved claim is retained.");
-        throw new Error(error instanceof ApiError && error.status === 402 ? "Your account needs a research allowance. The edited answer remains saved." : "Edited answer outcome is unknown. Resolve its original ID; it was not resent.");
+        throw new Error(error instanceof ApiError && (error.status === 402 || error.status === 403) ? "Your account needs a research allowance. The edited answer remains saved." : "Edited answer outcome is unknown. Resolve its original ID; it was not resent.");
       }
       const latest = guestPendingRef.current;
       if (!latest || latest.submissionId !== pending.submissionId || latest.phase !== "resume_pending") throw new Error("Edited answer state changed during continuation.");
@@ -1036,6 +1056,37 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     if (pending.payload.kind === "clarification" && (pending.phase === "member_register_pending" || pending.phase === "member_claimed")) {
       await continueMemberClarification(credential(), memberAccountId);
       return;
+    }
+    if (pending.phase === "funding_pending" || pending.phase === "funding_denied" || pending.phase === "funding_reconcile") {
+      if (!pending.claim) throw new Error("The saved funding action lost its claim identity.");
+      // The grant identity is the immutable claim request ID: retrying it is
+      // idempotent and can never double-fund. A definitive denial is recorded
+      // as known; an unknown outcome is held reconcile-only. Neither is ever
+      // auto-resent as a new action.
+      try {
+        await api.newMemberGrant(memberToken, pending.claim.requestId, DEFAULT_RUN_BUDGET_MICRO);
+      } catch (error) {
+        if (isSupersededRequest(error)) throw error;
+        const latest = guestPendingRef.current;
+        if (!latest || latest.submissionId !== pending.submissionId ||
+          !["funding_pending", "funding_denied", "funding_reconcile"].includes(latest.phase)) throw error;
+        if (error instanceof ApiError && error.status === 403 && error.code === "consent_required") {
+          setStateRaw(s => ({ ...s, tab: "settings", error: "Grant AI processing consent in Settings to continue the saved message. It remains saved and will continue once." }));
+          throw new Error("Member consent is required before this saved message can run. The exact saved claim is retained.");
+        }
+        if (error instanceof ApiError && (error.status === 402 || error.status === 403)) {
+          await saveGuestPending(denyGuestActionFunding(latest, new Date()), latest);
+          throw new Error("Your account needs a research allowance. The exact saved message can be continued after funding; nothing was sent again.");
+        }
+        await saveGuestPending(holdGuestFundingForReconciliation(latest), latest);
+        throw new Error("Funding outcome is unknown. Resolve the saved request; it will not be sent again.");
+      }
+      const funded = guestPendingRef.current;
+      if (!funded || funded.submissionId !== pending.submissionId ||
+        !["funding_pending", "funding_denied", "funding_reconcile"].includes(funded.phase)) throw new Error("Funding state changed while the server was responding.");
+      pending = reopenGuestPendingAction(funded, new Date());
+      await saveGuestPending(pending, funded);
+      if (pending.payload.kind === "clarification") { await continueMemberClarification(credential(), memberAccountId); return; }
     }
     if (pending.phase === "resume_reconcile") {
       const resolved = await api.resolveGuestAction(credential(), pending);
@@ -1443,17 +1494,42 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       // auto-resume here.
       const held = guestPendingRef.current;
       const owner = memberAccountRef.current;
+      const fundsHeld = held && owner && held.authenticatedAccountId === owner &&
+        (held.phase === "funding_pending" || held.phase === "funding_denied" || held.phase === "funding_reconcile");
       if (held && owner && held.autoResume && held.authenticatedAccountId === owner &&
         (held.phase === "claimed" || held.phase === "member_claimed")) {
         try {
           if (!held.claim) throw new Error("The saved claim lost its identity. It was not continued.");
           await api.newMemberGrant(t, held.claim.requestId, DEFAULT_RUN_BUDGET_MICRO);
-          await continueSavedSecondMessage(t, owner);
         }
         catch (e) {
           if (isSupersededRequest(e)) return;
+          // The grant itself failed: record a definitive funding denial as a
+          // known held state, or an unknown grant outcome as reconcile-only.
+          // Neither is a dismissal and neither is ever auto-resent.
+          const latest = guestPendingRef.current;
+          if (latest && latest.authenticatedAccountId === owner && latest.claim &&
+            (latest.phase === "claimed" || latest.phase === "member_claimed")) {
+            if (e instanceof ApiError && (e.status === 402 || e.status === 403))
+              await saveGuestPending(denyGuestActionFunding(latest, new Date()), latest);
+            else await saveGuestPending(holdGuestFundingForReconciliation(latest), latest);
+          }
+          setState((s) => ({ ...s, error: (e as Error).message }));
+          return;
+        }
+        try { await continueSavedSecondMessage(t, owner); }
+        catch (e) {
+          // continueSavedSecondMessage already persisted the exact held state
+          // (consent, funding denial, or reconcile-only); surface its message.
+          if (isSupersededRequest(e)) return;
           setState((s) => ({ ...s, error: (e as Error).message }));
         }
+      } else if (fundsHeld) {
+        // Consent was granted while the exact action was already held for
+        // funding: fund through the same idempotent claim-keyed grant and
+        // continue the single saved action.
+        try { await continueSavedSecondMessage(t, owner!); }
+        catch (e) { if (isSupersededRequest(e)) return; setState((s) => ({ ...s, error: (e as Error).message })); }
       }
     } catch (e) {
       if (isSupersededRequest(e)) return;

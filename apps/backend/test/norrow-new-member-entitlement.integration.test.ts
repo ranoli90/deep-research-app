@@ -12,6 +12,8 @@ import { buildApp } from "../src/api/app.js";
 import { createQueue } from "../src/adapters/queue.js";
 import { createPool, migrate } from "../src/platform/db.js";
 import { loadConfig } from "../src/platform/config.js";
+import { accountForIdentity } from "../src/modules/identity.js";
+import { hashToken } from "../src/modules/access.js";
 
 /**
  * AUD04 held-out regression: new-member entitlement (F02 server grant path).
@@ -135,6 +137,33 @@ async function newZeroedMember() {
 }
 
 /**
+ * A genuinely newly-mapped identity: the real server mapping path
+ * (`accountForIdentity`) creates the account and gives it ZERO allowance
+ * ("Authentication is not a grant of paid allowance"). A dev bearer is then
+ * attached only as the isolated-test authentication stand-in, so no fixture
+ * allowance is ever minted for this account. This is the true fresh-member
+ * zero-state the R02 journey must handle.
+ */
+async function newlyMappedZeroAllowanceMember() {
+  const mapped = await accountForIdentity(pool, { issuer: "https://issuer.test/auth/v1", subject: randomUUID() });
+  expect(mapped).not.toBeNull();
+  const accountId = mapped!.accountId;
+  const row = (
+    await pool.query<{ limit_micro: string; settled_micro: string; reserved_micro: string }>(
+      "SELECT limit_micro,settled_micro,reserved_micro FROM allowance_accounts WHERE account_id=$1",
+      [accountId],
+    )
+  ).rows[0]!;
+  expect(row).toMatchObject({ limit_micro: "0", settled_micro: "0", reserved_micro: "0" });
+  const token = `dev_${randomUUID().replace(/-/g, "")}`;
+  await pool.query(
+    "INSERT INTO sessions (account_id, token_hash, expires_at) VALUES ($1,$2,now()+interval '1 day')",
+    [accountId, hashToken(token)],
+  );
+  return { accountId, token, headers: { authorization: `Bearer ${token}` } };
+}
+
+/**
  * F02 server grant path: POST /v1/entitlements/new-member-grant.
  * No test SQL grants allowance; every grant goes through the real server path
  * with an idempotent grantRequestId, per-grant bound, and aggregate cap.
@@ -242,7 +271,9 @@ async function memberReservationCount(memberAccountId: string) {
 }
 
 /** Guest bootstrap → guest consent → fixture first run → follow_up pending → auth attempt → member claim. */
-async function driveGuestToClaimed() {
+async function driveGuestToClaimed(
+  existingMember?: { accountId: string; headers: { authorization: string } },
+) {
   const guest = await enabledGuest();
   expect(
     (
@@ -299,7 +330,7 @@ async function driveGuestToClaimed() {
       })
     ).statusCode,
   ).toBe(200);
-  const member = await newZeroedMember();
+  const member = existingMember ?? await newZeroedMember();
   const claimRequestId = randomUUID();
   const claim = await app.inject({
     method: "POST",
@@ -1065,5 +1096,177 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
         conversationId: guest.conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION } })).statusCode).toBe(200);
     expect(await readSponsorLedger()).toEqual({
       settled: 0, reserved: DEFAULT_RUN_BUDGET_MICRO, held: 0 });
+  });
+});
+
+/**
+ * R02: the connected fresh-member allowance journey. A genuinely
+ * newly-mapped, zero-allowance identity takes a guest first message, holds a
+ * second Send, signs in, grants member consent, and receives the server-owned
+ * bounded trial; the exact second action then continues once and the member
+ * conversation accepts a third message. Exhaustion, replay, account-switch,
+ * cancel, and lost grant/continuation responses are covered as separate
+ * failure states. Every grant goes through the real server path.
+ */
+describe("R02 fresh-member allowance journey via the server-owned new-member trial", () => {
+  const resume = (member: { headers: { authorization: string } }, ctx: Awaited<ReturnType<typeof driveGuestToClaimed>>) =>
+    app.inject({ method: "POST", url: "/v1/guest/actions/resume", headers: member.headers, payload: ctx.resumePayload });
+  const createMemberRun = (member: { headers: { authorization: string } }, conversationId: string, question: string) =>
+    app.inject({
+      method: "POST", url: "/v1/runs",
+      headers: { ...member.headers, "idempotency-key": randomUUID() },
+      payload: { question, routeMode: "fixture", conversationId, consentPolicyVersion: CONSENT_POLICY_VERSION },
+    });
+  const grant = (member: { headers: { authorization: string } }, grantRequestId: string) =>
+    app.inject({
+      method: "POST", url: "/v1/entitlements/new-member-grant", headers: member.headers,
+      payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO },
+    });
+
+  it("E-FRESH-01 zero-allowance mapped member: consent + server trial continues the exact second action once, then a third message works", async () => {
+    await pool.query(`UPDATE new_member_trial_policies SET enabled=true,killed=false,
+      expires_at=now()+interval '2 days',amount_micro=${2 * DEFAULT_RUN_BUDGET_MICRO},exposure_cap_micro=500000
+      WHERE id='norrow-new-member-trial.v1'`);
+    const member = await newlyMappedZeroAllowanceMember();
+    const ctx = await driveGuestToClaimed(member);
+    // Fresh zero state: no member consent yet -> fail closed, no run.
+    const preConsent = await resume(member, ctx);
+    expect(preConsent.statusCode).toBe(403);
+    expect(preConsent.json().code).toBe("consent_required");
+    expect(await memberRunCount(member.accountId)).toBe(0);
+    // Member consent granted, but the funding prerequisite is still missing:
+    // definitive 402, no run/reservation, exact claim retained.
+    await grantMemberConsent(member.headers);
+    const preGrant = await resume(member, ctx);
+    expect(preGrant.statusCode).toBe(402);
+    expect(preGrant.json().code).toBe("allowance_exhausted");
+    expect(await memberRunCount(member.accountId)).toBe(0);
+    expect(await memberReservationCount(member.accountId)).toBe(0);
+    expect(
+      (await pool.query("SELECT state FROM guest_pending_actions WHERE submission_id=$1", [ctx.submissionId]))
+        .rows[0]!.state,
+    ).toBe("claimed");
+    // Eligible server trial: the credited amount is the policy row's, not the
+    // caller's requested amount.
+    const granted = await grant(member, ctx.claimRequestId);
+    expect(granted.statusCode).toBe(200);
+    expect(granted.json()).toMatchObject({
+      grantRequestId: ctx.claimRequestId, accountId: member.accountId,
+      amountMicro: 2 * DEFAULT_RUN_BUDGET_MICRO, reused: false,
+    });
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: 2 * DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0,
+    });
+    // The exact second action continues once; a replay resolves the same dispatch.
+    const resumed = await resume(member, ctx);
+    expect(resumed.statusCode).toBe(200);
+    expect(resumed.json()).toMatchObject({ type: "continuation_dispatched", reused: false });
+    const child = resumed.json() as { runId: string; memberConversationId: string };
+    const replay = await resume(member, ctx);
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toMatchObject({
+      type: "continuation_dispatched", reused: true, runId: child.runId, receiptId: resumed.json().receiptId,
+    });
+    expect(await memberRunCount(member.accountId)).toBe(1);
+    // The continued member conversation accepts a distinct third message.
+    const third = await createMemberRun(member, child.memberConversationId, "How does the warranty compare?");
+    expect(third.statusCode).toBe(200);
+    expect(await memberRunCount(member.accountId)).toBe(2);
+    const binding = (
+      await pool.query<{ claim_request_id: string }>(
+        "SELECT claim_request_id FROM guest_pending_actions WHERE submission_id=$1",
+        [ctx.submissionId],
+      )
+    ).rows[0]!;
+    expect(binding.claim_request_id).toBe(ctx.claimRequestId);
+  });
+
+  it("E-FRESH-02 exhaustion: the bounded trial funds exactly one action; a distinct third send is denied without mutation", async () => {
+    const member = await newlyMappedZeroAllowanceMember();
+    const ctx = await driveGuestToClaimed(member);
+    await grantMemberConsent(member.headers);
+    const granted = await grant(member, ctx.claimRequestId);
+    expect(granted.statusCode).toBe(200);
+    expect(granted.json()).toMatchObject({ amountMicro: DEFAULT_RUN_BUDGET_MICRO });
+    const resumed = await resume(member, ctx);
+    expect(resumed.statusCode).toBe(200);
+    const memberConversationId = resumed.json().memberConversationId as string;
+    const before = await readAllowance(member.accountId);
+    const third = await createMemberRun(member, memberConversationId, "A distinct third question");
+    expect(third.statusCode).toBe(402);
+    expect(third.json().code).toBe("allowance_exhausted");
+    expect(await readAllowance(member.accountId)).toEqual(before);
+    expect(await memberRunCount(member.accountId)).toBe(1);
+  });
+
+  it("E-FRESH-03 lost grant response: replaying the same claim-keyed grant grants once", async () => {
+    const member = await newlyMappedZeroAllowanceMember();
+    const ctx = await driveGuestToClaimed(member);
+    await grantMemberConsent(member.headers);
+    const first = await grant(member, ctx.claimRequestId);
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ reused: false });
+    const lost = await grant(member, ctx.claimRequestId);
+    expect(lost.statusCode).toBe(200);
+    expect(lost.json()).toMatchObject({ reused: true, amountMicro: DEFAULT_RUN_BUDGET_MICRO });
+    expect(await trialEntitlementCount(member.accountId)).toBe(1);
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0,
+    });
+  });
+
+  it("E-FRESH-04 lost continuation response: replay resolves the original dispatch, never a second run", async () => {
+    const member = await newlyMappedZeroAllowanceMember();
+    const ctx = await driveGuestToClaimed(member);
+    await grantMemberConsent(member.headers);
+    expect((await grant(member, ctx.claimRequestId)).statusCode).toBe(200);
+    const first = await resume(member, ctx);
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ reused: false });
+    const replay = await resume(member, ctx);
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toMatchObject({
+      reused: true, runId: first.json().runId, receiptId: first.json().receiptId,
+    });
+    expect(await memberRunCount(member.accountId)).toBe(1);
+  });
+
+  it("E-FRESH-05 different account cannot resume or fund another member's claimed action", async () => {
+    const member = await newlyMappedZeroAllowanceMember();
+    const ctx = await driveGuestToClaimed(member);
+    const foreign = await newlyMappedZeroAllowanceMember();
+    const stolen = await resume(foreign, ctx);
+    expect(stolen.statusCode).toBe(403);
+    expect(stolen.json().code).toBe("authority_denied");
+    await grantMemberConsent(foreign.headers);
+    const stolenGrant = await app.inject({
+      method: "POST", url: "/v1/entitlements/new-member-grant", headers: foreign.headers,
+      payload: { grantRequestId: ctx.claimRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO },
+    });
+    expect(stolenGrant.statusCode).toBe(403);
+    expect(stolenGrant.json().code).toBe("authority_denied");
+    // The foreign member's own independent trial still works.
+    const own = await grant(foreign, randomUUID());
+    expect(own.statusCode).toBe(200);
+    expect(await readAllowance(foreign.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0,
+    });
+    expect(await readAllowance(member.accountId)).toEqual({ limit: 0, settled: 0, reserved: 0 });
+  });
+
+  it("E-FRESH-06 cancel: an abandoned exact action cannot continue", async () => {
+    const member = await newlyMappedZeroAllowanceMember();
+    const ctx = await driveGuestToClaimed(member);
+    const abandoned = await app.inject({
+      method: "POST", url: "/v1/guest/actions/abandon", headers: member.headers,
+      payload: { claimRequestId: ctx.claimRequestId, submissionId: ctx.submissionId },
+    });
+    expect(abandoned.statusCode).toBe(200);
+    expect(abandoned.json()).toMatchObject({ type: "action_abandoned" });
+    await grantMemberConsent(member.headers);
+    expect((await grant(member, ctx.claimRequestId)).statusCode).toBe(200);
+    const denied = await resume(member, ctx);
+    expect(denied.statusCode).toBe(409);
+    expect(await memberRunCount(member.accountId)).toBe(0);
   });
 });

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   beginGuestActionResume, beginGuestAuth, beginGuestClaim, cancelGuestAuthAttempt, cancelGuestPendingAction,
-  completeGuestAuth, completeGuestClaim, createGuestPendingAction, dismissGuestPendingAction, expireGuestPendingAction,
-  guestPendingActionNeedsReconciliation, markGuestActionDispatched, readGuestPendingAction, rejectGuestPendingAction,
-  reopenGuestPendingAction, retryGuestClaim, validateGuestActionResume, holdGuestAuthAttempt,
+  completeGuestAuth, completeGuestClaim, createGuestPendingAction, denyGuestActionFunding, dismissGuestPendingAction, expireGuestPendingAction,
+  guestPendingActionNeedsReconciliation, holdGuestFundingForReconciliation, markGuestActionDispatched, readGuestPendingAction, rejectGuestPendingAction,
+  reopenGuestPendingAction, requireGuestActionFunding, retryGuestClaim, validateGuestActionResume, holdGuestAuthAttempt,
   prepareMemberClarificationReplacement, confirmMemberClarificationRegistration,
   type GuestClaimAcceptedOutcome, type GuestContinuationDispatchedOutcome, type GuestPendingActionRejectionOutcome,
 } from "../src/auth/guest-pending-action";
@@ -322,5 +322,85 @@ describe("guest pending action", () => {
     expect(expired).toMatchObject({ phase: "expired", submissionId: id(1), payload: action.payload });
     expectRoundTrip(expired);
     expect(() => beginGuestAuth(expired, { id: id(6), provider: "email" }, new Date("2026-09-21T12:01:00.000Z"))).toThrow("expired");
+  });
+
+  it("R02 missing funding prerequisite is held (not dismissed) and the exact action continues once after reopen", () => {
+    const held = requireGuestActionFunding(claimed(), context().now);
+    // Distinct from a dismissal and from the ready claimed state.
+    expect(held).toMatchObject({ phase: "funding_pending", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(held);
+    expect(validateGuestActionResume(held, context())).toEqual({ ok: false, code: "phase" });
+    // Reopening after an explicit consent + eligible grant keeps the exact
+    // submission and claim identity and continues exactly once.
+    const reopened = reopenGuestPendingAction(held, context().now);
+    expect(reopened).toMatchObject({ phase: "claimed", autoResume: true, submissionId: id(1), claim: { requestId: id(8) } });
+    expect(reopened).toEqual({ ...claimed(), autoResume: true });
+    const resuming = beginGuestActionResume(reopened, context());
+    const dispatched = markGuestActionDispatched(resuming, continuationDispatched(), context().now);
+    expect(dispatched).toMatchObject({ phase: "dispatched", dispatchReceiptId: id(9), submissionId: id(1) });
+    expect(() => markGuestActionDispatched(dispatched, continuationDispatched({ receiptId: id(10) }), context().now)).toThrow("current state");
+  });
+
+  it("R02 deliberate dismissal of a held funding action stays distinct from the missing prerequisite", () => {
+    const held = requireGuestActionFunding(claimed(), context().now);
+    const dismissed = dismissGuestPendingAction(held, context().now);
+    // A deliberate dismissal returns to the claimed phase with autoResume off;
+    // it is NOT the funding_pending held state and NOT an unknown outcome.
+    expect(dismissed).toMatchObject({ phase: "claimed", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(dismissed);
+    expect(validateGuestActionResume(dismissed, context())).toEqual({ ok: false, code: "dismissed" });
+    expect(reopenGuestPendingAction(dismissed, context().now).autoResume).toBe(true);
+  });
+
+  it("R02 definitive funding denial is a known held state, resumable only by explicit re-engagement", () => {
+    const resuming = beginGuestActionResume(claimed(), context());
+    const denied = denyGuestActionFunding(resuming, context().now);
+    expect(denied).toMatchObject({ phase: "funding_denied", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(denied);
+    expect(validateGuestActionResume(denied, context())).toEqual({ ok: false, code: "phase" });
+    const reopened = reopenGuestPendingAction(denied, context().now);
+    expect(reopened).toMatchObject({ phase: "claimed", autoResume: true, claim: { requestId: id(8) } });
+    expect(beginGuestActionResume(reopened, context()).phase).toBe("resume_pending");
+    const deniedFromHeld = denyGuestActionFunding(requireGuestActionFunding(claimed(), context().now), context().now);
+    expect(deniedFromHeld.phase).toBe("funding_denied");
+    // A clarification-held denial reopens to the exact member_claimed phase.
+    const clarificationHeld = requireGuestActionFunding(
+      completeGuestClaim(
+        beginGuestClaim(
+          completeGuestAuth(beginGuestAuth(pending("clarification"), { id: id(6), provider: "email" }, context().now), id(6), id(7), context().now),
+          id(8), context().now,
+        ),
+        claimAccepted(), context().now,
+      ),
+      context().now,
+    );
+    expect(clarificationHeld.phase).toBe("funding_pending");
+    expect(reopenGuestPendingAction(denyGuestActionFunding(clarificationHeld, context().now), context().now).phase).toBe("member_claimed");
+  });
+
+  it("R02 unknown grant outcome is held reconcile-only, never auto-resent, and resolved by replay", () => {
+    const held = requireGuestActionFunding(claimed(), context().now);
+    const reconciling = holdGuestFundingForReconciliation(held);
+    expect(reconciling).toMatchObject({ phase: "funding_reconcile", autoResume: false, submissionId: id(1), claim: { requestId: id(8) } });
+    expectRoundTrip(reconciling);
+    // A dismissal of an unknown state keeps the reconcile-only phase.
+    expect(dismissGuestPendingAction(reconciling, context().now).phase).toBe("funding_reconcile");
+    // Expiry preserves the sole IDs that can resolve the original grant; after
+    // the qualifying replay the exact action can still reopen and continue once.
+    const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
+    const expired = expireGuestPendingAction(reconciling, afterExpiry);
+    expect(expired.phase).toBe("funding_reconcile");
+    expect(guestPendingActionNeedsReconciliation(expired, afterExpiry)).toBe(true);
+    const reopened = reopenGuestPendingAction(reconciling, context().now);
+    expect(reopened).toMatchObject({ phase: "claimed", autoResume: true, claim: { requestId: id(8) } });
+  });
+
+  it("R02 expiry of a held missing-prerequisite action does not mint a new submission", () => {
+    const held = requireGuestActionFunding(claimed(), context().now);
+    const afterExpiry = new Date("2026-09-21T12:01:00.000Z");
+    const expired = expireGuestPendingAction(held, afterExpiry);
+    expect(expired).toMatchObject({ phase: "expired", autoResume: false, submissionId: id(1) });
+    expectRoundTrip(expired);
+    expect(() => reopenGuestPendingAction(expired, afterExpiry)).toThrow("expired");
   });
 });
