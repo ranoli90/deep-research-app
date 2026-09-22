@@ -189,4 +189,51 @@ describe("operator-owned migration and least-privilege runtime", () => {
       await runtime.shutdown(10_000);
     }
   }, 30_000);
+
+  it("SIGTERM drains an in-flight synthetic job and refuses new intake within the window", async () => {
+    let started!: () => void;
+    let finish!: () => void;
+    const accepted = new Promise<void>((resolve) => { started = resolve; });
+    const release = new Promise<void>((resolve) => { finish = resolve; });
+    const calls: string[] = [];
+    const originalFetch = globalThis.fetch;
+    let fetchCalls = 0;
+    globalThis.fetch = (async () => { fetchCalls++; throw new Error("live_spend_forbidden"); }) as typeof fetch;
+    const config = loadConfig({ DATABASE_URL: roleUrl.toString(), DEV_ALLOW_FIXTURE_ROUTE: "true" });
+    expect(config.liveRouteEnabled).toBe(false);
+    // The prior drain test intentionally leaves its refused "queued-test" job in
+    // the shared queue; purge before starting so this worker only sees this test's jobs.
+    const purger = await createQueue(databaseUrl.toString(), { schemaSetup: false });
+    try {
+      await purger.purgeQueue(RESEARCH_QUEUE);
+    } finally {
+      await purger.stop({ graceful: true, timeout: 2000 });
+    }
+    const runtime = await startWorker((async (_pool, _config, runId) => {
+      calls.push(runId);
+      started();
+      await release;
+    }) as typeof processRun, config);
+    let sender: Awaited<ReturnType<typeof createQueue>> | undefined;
+    try {
+      sender = await createQueue(databaseUrl.toString(), { schemaSetup: false });
+      await sender.send(RESEARCH_QUEUE, { runId: "sigterm-accepted" });
+      await accepted;
+      const begin = Date.now();
+      process.emit("SIGTERM");
+      // Give the installed SIGTERM handler a tick to initiate drain (offWork).
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await sender.send(RESEARCH_QUEUE, { runId: "sigterm-queued" });
+      finish();
+      await expect(runtime.shutdown(10_000)).resolves.toEqual({ drained: true });
+      expect(Date.now() - begin).toBeLessThan(10_000);
+      expect(calls).toEqual(["sigterm-accepted"]);
+      expect(fetchCalls).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      finish();
+      if (sender) await sender.stop({ graceful: true, timeout: 2000 });
+      await runtime.shutdown(10_000).catch(() => ({ drained: false }));
+    }
+  }, 30_000);
 });

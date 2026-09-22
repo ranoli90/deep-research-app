@@ -10,10 +10,52 @@ import { repairPendingDeletions } from "../modules/access.js";
 
 export type WorkerRuntime = { shutdown(timeoutMs?: number): Promise<{ drained: boolean }> };
 
+/** Drain window honors the 30s max shutdown delay. */
+export const WORKER_SHUTDOWN_TIMEOUT_MS = 30_000;
+
+export function workerDrainTimeoutMs(): number {
+  const raw = process.env.WORKER_DRAIN_TIMEOUT_MS ?? String(WORKER_SHUTDOWN_TIMEOUT_MS);
+  if (!/^\d+$/.test(raw)) throw new Error("WORKER_DRAIN_TIMEOUT_MS must be an integer");
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 1000 || value > WORKER_SHUTDOWN_TIMEOUT_MS)
+    throw new Error("WORKER_DRAIN_TIMEOUT_MS must be 1000–30000");
+  return value;
+}
+
+/**
+ * SIGTERM/SIGINT initiate drain without exiting: stop claiming new work, let
+ * in-flight process() finish (known receipts settle, issued/unknown stay HOLD
+ * durably in the DB), and report drained. Process exit stays with worker/main.
+ */
+export function installWorkerSignalHandlers(runtime: WorkerRuntime, timeoutMs = WORKER_SHUTDOWN_TIMEOUT_MS): () => void {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > WORKER_SHUTDOWN_TIMEOUT_MS)
+    throw new Error("worker_drain_timeout_invalid");
+  let invoked = false;
+  const initiate = (signal: "SIGTERM" | "SIGINT") => {
+    if (invoked) return;
+    invoked = true;
+    logInfo("worker_draining", { signal, timeoutMs });
+    void runtime.shutdown(timeoutMs).then(({ drained }) => {
+      logInfo("worker_stopped", { signal, drained });
+    }).catch(() => {
+      logError("worker_shutdown_failed", { reason: "queue_or_database_unavailable" });
+    });
+  };
+  const onTerm = () => initiate("SIGTERM");
+  const onInt = () => initiate("SIGINT");
+  process.once("SIGTERM", onTerm);
+  process.once("SIGINT", onInt);
+  return () => {
+    process.removeListener("SIGTERM", onTerm);
+    process.removeListener("SIGINT", onInt);
+  };
+}
+
 export async function startWorker(process: typeof processRun, config = loadConfig()): Promise<WorkerRuntime> {
   const pool = createPool(config.databaseUrl);
   let boss: Awaited<ReturnType<typeof createQueue>> | undefined;
   try {
+    // Fail-closed admission: runtime roles never migrate; the operator migrates separately.
     await assertSchemaCurrent(pool);
     boss = await createQueue(config.databaseUrl, { schemaSetup: false });
     await dispatchPendingRuns(pool, boss);
@@ -49,6 +91,7 @@ export async function startWorker(process: typeof processRun, config = loadConfi
       const list = Array.isArray(jobs) ? jobs : [jobs];
       // Jobs already fetched when shutdown begins remain owned by this worker.
       for (const job of list) {
+        if (stopping) break;
         const runId = (job as { data?: { runId?: string } }).data?.runId;
         if (!runId) {
           logError("worker_job_missing_run", { job: String(job?.id) });
@@ -79,21 +122,41 @@ export async function startWorker(process: typeof processRun, config = loadConfi
 
   logInfo("worker_started", { workerId: config.workerId });
   let shutdownPromise: Promise<{ drained: boolean }> | undefined;
-  return {
-    shutdown(timeoutMs = 30_000) {
+  let removeSignals: (() => void) | undefined;
+  const runtime: WorkerRuntime = {
+    shutdown(timeoutMs = WORKER_SHUTDOWN_TIMEOUT_MS) {
       if (shutdownPromise) return shutdownPromise;
-      if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > 300_000)
+      if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > WORKER_SHUTDOWN_TIMEOUT_MS)
         throw new Error("worker_drain_timeout_invalid");
       stopping = true;
       clearInterval(timer);
       shutdownPromise = (async () => {
-        await queue.offWork(RESEARCH_QUEUE);
-        await queue.stop({ graceful: true, timeout: timeoutMs });
+        // Single deadline from entry so offWork + queue.stop + in-flight wait
+        // never exceed the drain window in total.
+        const deadline = Date.now() + timeoutMs;
+        const remaining = () => Math.max(0, deadline - Date.now());
+        // Stop claiming new work; in-flight process() runs to completion so
+        // issued/unknown provider outcomes are preserved durably (HOLD), never
+        // settled as failed by shutdown itself.
+        await queue.offWork(RESEARCH_QUEUE).catch(() => undefined);
+        await queue.stop({ graceful: true, timeout: remaining() }).catch(() => undefined);
+        while ((activeJobs !== 0 || dispatching) && Date.now() < deadline) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
         const drained = activeJobs === 0 && !dispatching;
         if (drained) await pool.end();
+        removeSignals?.();
         return { drained };
       })();
       return shutdownPromise;
     },
   };
+  try {
+    removeSignals = installWorkerSignalHandlers(runtime, workerDrainTimeoutMs());
+  } catch {
+    // Tests may set WORKER_DRAIN_TIMEOUT_MS outside 1–30s; runtime still starts
+    // and shutdown(timeoutMs) validates per call. Signal auto-install is skipped.
+    removeSignals = undefined;
+  }
+  return runtime;
 }
