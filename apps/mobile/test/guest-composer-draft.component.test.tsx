@@ -8,8 +8,10 @@ import { emptyState } from "../src/state";
 import { api } from "../src/api";
 
 // Held-out AUD02 matrix: guest composer draft survival/clear through the real
-// mounted App. Clock-rot resistant: guest expiry uses 2027 (never 2026-09-22);
-// explicit fixed createdAt dates keep the journal deterministic.
+// mounted App. F05 clock control: the canonical 2026-09-22 fixture deadline is
+// immutable and is never moved forward here; time is frozen before it so this
+// whole suite passes under any host date. Explicit fixed createdAt dates keep
+// the journal deterministic.
 const held = vi.hoisted(() => ({ device: null as any, session: null as any, id: 100 }));
 vi.mock("react-native", () => ({
   AccessibilityInfo: { announceForAccessibility: () => undefined, isReduceMotionEnabled: async () => false, addEventListener: () => ({ remove() {} }), setAccessibilityFocus: () => undefined },
@@ -58,7 +60,7 @@ import { AppInner } from "../App";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const proof = "p".repeat(43);
-const EXPIRY = "2027-01-01T00:00:00.000Z";
+const EXPIRY = "2026-09-22T00:00:00.000Z";
 const FIXED_AT = "2026-09-21T00:00:00.000Z";
 const baseContext = { guestContextId: id(101), conversationId: id(102), conversationVersion: 1, expiresAt: EXPIRY, consentPolicyVersion: "consent.v1", controlVersion: 1, acceptedTurnCount: 0, consentGranted: true };
 
@@ -89,6 +91,8 @@ const ackFor = (body: any) => ({ code: "AUTH_REQUIRED_NEXT_TURN", submissionId: 
 
 beforeEach(async () => {
   held.id = 100;
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-21T00:00:00.000Z"));
   const ordinary = memoryStore(), native = memoryStore(), secure = memoryStore();
   const content = createProtectedContentStore(ordinary, native);
   await content.setItem("deep.install.v2", "1");
@@ -99,7 +103,7 @@ beforeEach(async () => {
     redactRunContent: async () => undefined, readCorrectionDocuments: async () => null, finishCorrectionDocuments: async () => undefined };
   vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
 });
-afterEach(() => { api.activateSession(null); api.clearGuest(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { api.activateSession(null); api.clearGuest(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 async function mountGuest() {
   let renderer!: TestRenderer.ReactTestRenderer;

@@ -65,7 +65,7 @@ async function guestReq(method: string, path: string, proof: string, body?: obje
     if (!response.ok) {
       if (response.status === 401 && credential && memberCredentialProvider &&
         (requests.currentCredential() !== credential || await memberCredentialProvider(credential, true) !== credential)) throw new SupersededRequest();
-      throw new ApiError(response.status, typeof result?.code === "string" ? result.code : `Request failed (${response.status})`);
+      throw new ApiError(response.status, typeof result?.code === "string" ? result.code : `Request failed (${response.status})`, responseCode(result));
     }
     return result;
   } catch (error) {
@@ -79,10 +79,21 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    /** Exact server `code` when the response carried one. Status alone cannot
+     * distinguish a definitive consent denial (403 consent_required) from an
+     * unknown outcome, so the client must never infer the code from text. */
+    public readonly code: string | null = null,
   ) {
     super(message);
     this.name = "ApiError";
   }
+}
+
+/** Exact server code when the decoded body carries one, else null. */
+function responseCode(body: unknown): string | null {
+  return body !== null && typeof body === "object" && typeof (body as { code?: unknown }).code === "string"
+    ? (body as { code: string }).code
+    : null;
 }
 
 export function isExpiredSession(err: unknown): boolean {
@@ -121,7 +132,7 @@ async function req(path: string, init: RequestInit & { token?: string; scope?: "
         // same-principal credential; the original request remains unresolved.
         if (requests.currentCredential() !== credential || await memberCredentialProvider(credential, true) !== credential) throw new SupersededRequest();
       }
-      throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`);
+      throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`, responseCode(body));
     }
     return body;
   } catch (e) {

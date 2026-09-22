@@ -475,6 +475,18 @@ export function holdGuestResumeForReconciliation(intent: GuestPendingAction): Gu
   return persisted({ ...checked, phase: "resume_reconcile", autoResume: false });
 }
 /**
+ * A definitive 403 consent_required denial means the server did not dispatch:
+ * member consent was absent, revoked, or outdated. The exact claim is retained
+ * (never cleared, never reconciled as unknown) so one continuation can run
+ * after explicit member consent. Guards are unchanged: resume still requires
+ * the same validation before any new request.
+ */
+export function holdGuestResumeForConsent(intent: GuestPendingAction): GuestPendingAction {
+  const checked = readGuestPendingAction(intent);
+  if (checked.phase !== "resume_pending" || !checked.autoResume) throw new Error("Only an in-flight continuation awaiting consent can be held for consent.");
+  return persisted({ ...checked, phase: checked.payload.kind === "clarification" ? "member_claimed" : "claimed" });
+}
+/**
  * Records the API acknowledgement for the stable client submission ID. The
  * server must enforce idempotency; this client journal does not claim external
  * exactly-once delivery. A late duplicate acknowledgement cannot overwrite it.

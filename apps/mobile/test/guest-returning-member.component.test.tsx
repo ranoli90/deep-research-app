@@ -11,7 +11,9 @@ import { sha256Hex } from "../src/sha256";
 
 // Held-out AUD03 matrix: returning-member direct login, early private-upload
 // login, second-Send claim preservation, sponsorship/existing/canceled/
-// Library edges — real mounted App. Expiry 2027 resists clock rot.
+// Library edges — real mounted App. F05 clock control: the canonical
+// 2026-09-22 fixture deadline is immutable and is never moved forward here;
+// time is frozen before it so this whole suite passes under any host date.
 const held = vi.hoisted(() => ({ device: null as any, session: null as any, id: 300 }));
 vi.mock("react-native", () => ({
   AccessibilityInfo: { announceForAccessibility: () => undefined, isReduceMotionEnabled: async () => false, addEventListener: () => ({ remove() {} }), setAccessibilityFocus: () => undefined },
@@ -60,7 +62,7 @@ import { AppInner } from "../App";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const proof = "p".repeat(43);
-const EXPIRY = "2027-01-01T00:00:00.000Z";
+const EXPIRY = "2026-09-22T00:00:00.000Z";
 const M = id(301);
 const memberToken = "member-token";
 const baseContext = { guestContextId: id(302), conversationId: id(303), conversationVersion: 1, expiresAt: EXPIRY, consentPolicyVersion: "consent.v1", controlVersion: 1, acceptedTurnCount: 0, consentGranted: true };
@@ -93,6 +95,8 @@ const terminalSnap = (runId: string, reportId: string | null) =>
 
 beforeEach(async () => {
   held.id = 300;
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-21T01:00:00.000Z"));
   const ordinary = memoryStore(), native = memoryStore(), secure = memoryStore();
   const content = createProtectedContentStore(ordinary, native);
   await content.setItem("deep.install.v2", "1");
@@ -103,7 +107,7 @@ beforeEach(async () => {
     redactRunContent: async () => undefined, readCorrectionDocuments: async () => null, finishCorrectionDocuments: async () => undefined };
   vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
 });
-afterEach(() => { api.activateSession(null); api.clearGuest(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { api.activateSession(null); api.clearGuest(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 function seedMemberHydrate(extra: Record<string, unknown> = {}) {
   held.session.hydrate = async () => ({ token: memberToken, accountId: M,
@@ -439,7 +443,7 @@ it("R-LIB-09 invalidated Library item redacts before any report fetch", async ()
   await act(async () => { renderer.unmount(); });
 });
 
-it("R-CLAIM-NULL-CONSENT null consent policy version does not block claim", async () => {
+it("C-CONSENT-01 null member consent retains the exact claim and resumes once after the real grant", async () => {
   const text = "What about battery life?";
   const window = freshWindow();
   const original = createGuestPendingAction({ submissionId: id(360), guestContextId: baseContext.guestContextId, conversationId: baseContext.conversationId,
@@ -451,6 +455,8 @@ it("R-CLAIM-NULL-CONSENT null consent policy version does not block claim", asyn
   await held.device.savePendingAction(authing, null);
   const snapshots: any[] = [];
   held.session.persistRequired = async (_value: string, snapshot: unknown) => { snapshots.push(snapshot); };
+  let claimRequestId: string | null = null;
+  let memberConsentServer: string | null = null;
   const calls: Call[] = [];
   stubFetch(calls, (method, path, body) => {
     if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
@@ -458,11 +464,33 @@ it("R-CLAIM-NULL-CONSENT null consent policy version does not block claim", asyn
     if (path === "/v1/guest/pending-actions/attempts/resolve") {
       return ok({ submissionId: id(360), authAttemptId: id(361), attemptRevision: 1, state: "authenticating" });
     }
+    if (path === "/v1/consent" && body?.grant === true) {
+      // The real member consent route requires the member bearer; a guest
+      // proof or missing credential must never mint a member grant here.
+      if (calls[calls.length - 1]?.auth !== `Bearer ${memberToken}`) {
+        return new Response(JSON.stringify({ code: "permission_denied", message: "Sign in required." }),
+          { status: 401, headers: { "content-type": "application/json" } });
+      }
+      memberConsentServer = baseContext.consentPolicyVersion;
+      return ok({ granted: true, policyVersion: memberConsentServer });
+    }
     if (path === "/v1/guest/claim") {
+      claimRequestId = body.claimRequestId;
+      // Real server truth: no member consent grant exists, so the receipt
+      // carries a null member consent version. It must not read as success.
       return ok({ type: "claim_accepted", submissionId: id(360), requestId: body.claimRequestId, accountId: M, conversationId: baseContext.conversationId,
-        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: null });
+        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: memberConsentServer });
+    }
+    if (path === "/v1/guest/claims/resolve") {
+      return ok({ type: "claim_accepted", submissionId: id(360), requestId: body.claimRequestId, accountId: M, conversationId: baseContext.conversationId,
+        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: memberConsentServer });
     }
     if (path === "/v1/guest/actions/resume") {
+      // Real server truth: without a member grant the continuation is denied.
+      if (memberConsentServer !== baseContext.consentPolicyVersion) {
+        return new Response(JSON.stringify({ code: "consent_required", message: "This guest action cannot continue with the current authority or state." }),
+          { status: 403, headers: { "content-type": "application/json" } });
+      }
       return ok({ type: "continuation_dispatched", submissionId: id(360), claimRequestId: body.claimRequestId, accountId: M,
         conversationId: baseContext.conversationId, conversationVersion: 1, receiptId: id(362), runId: id(363), memberConversationId: id(364), kind: "new_research" });
     }
@@ -471,11 +499,254 @@ it("R-CLAIM-NULL-CONSENT null consent policy version does not block claim", asyn
     return ok({});
   });
   const renderer = await mountWith(memberAuth);
+  // The claim is retained while consent is missing: no resume posts, the
+  // exact journal stays held, and explicit consent UX is presented.
+  await vi.waitFor(() => expect(calls.filter((c) => c.path === "/v1/guest/claim")).toHaveLength(1));
+  await vi.waitFor(() => expect(allText(renderer)).toMatch(/consent/i));
+  expect(calls.filter((c) => c.path === "/v1/guest/actions/resume")).toHaveLength(0);
+  const retained = (await held.device.load()).pendingAction;
+  expect(retained?.phase).toBe("claimed");
+  expect(retained?.autoResume).toBe(true);
+  expect(retained?.submissionId).toBe(id(360));
+  expect(retained?.claim?.requestId).toBe(claimRequestId);
+  // The real consent grant continues the exact retained claim exactly once.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  await act(async () => { await panelOf(renderer).props.onConsent(); });
   await vi.waitFor(() => expect(calls.filter((c) => c.path === "/v1/guest/actions/resume")).toHaveLength(1));
   expect(calls.filter((c) => c.path === "/v1/guest/claim")).toHaveLength(1);
-  expect(calls.filter((c) => c.path === "/v1/guest/pending-actions/attempts/begin")).toHaveLength(0);
+  expect(calls.filter((c) => c.method === "POST" && c.path === "/v1/consent")).toHaveLength(1);
   expect(await held.device.load()).toBeNull();
+  await act(async () => { headerOf(renderer).props.onDone(); });
   await vi.waitFor(() => expect(composerOf(renderer).props.draft).toBe(""));
   expect(snapshots.some((s) => s.conversationId === id(364) && s.run?.runId === id(363))).toBe(true);
+  await act(async () => { renderer.unmount(); });
+});
+
+function seedAuthingPending(submission: number, attempt: number, text: string, payload: any) {
+  const window = freshWindow();
+  const original = createGuestPendingAction({ submissionId: id(submission), guestContextId: baseContext.guestContextId, conversationId: baseContext.conversationId,
+    conversationVersion: 1, draftRevision: 0, draftDigest: sha256Hex(text), payload,
+    consentPolicyVersion: baseContext.consentPolicyVersion, createdAt: window.createdAt, expiresAt: window.expiresAt });
+  return beginGuestAuth(original, { id: id(attempt), provider: "google" }, window.now);
+}
+
+it("C-CONSENT-02 real 403 consent_required on resume retains the claim and continues once after the grant", async () => {
+  const text = "What about battery life?";
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: text, consentGranted: true, routeMode: "controlled-research" });
+  await held.device.savePendingAction(seedAuthingPending(370, 371, text, { kind: "new_research", text }), null);
+  held.session.persistRequired = async () => undefined;
+  let resumes = 0;
+  let memberConsentServer: string | null = baseContext.consentPolicyVersion;
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path, body) => {
+    if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return ok({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") {
+      return ok({ submissionId: id(370), authAttemptId: id(371), attemptRevision: 1, state: "authenticating" });
+    }
+    if (path === "/v1/consent" && body?.grant === true) {
+      memberConsentServer = baseContext.consentPolicyVersion;
+      return ok({ granted: true, policyVersion: memberConsentServer });
+    }
+    const receipt = { type: "claim_accepted", submissionId: id(370), requestId: body.claimRequestId ?? body.claimRequestId, accountId: M,
+      conversationId: baseContext.conversationId, conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true,
+      consentPolicyVersion: memberConsentServer };
+    if (path === "/v1/guest/claim" || path === "/v1/guest/claims/resolve") return ok({ ...receipt, requestId: body.claimRequestId });
+    if (path === "/v1/guest/actions/resume") {
+      resumes++;
+      if (resumes === 1) {
+        // Consent was revoked between claim and resume: the real server denies
+        // definitively without dispatching. This is not an unknown outcome.
+        memberConsentServer = null;
+        return new Response(JSON.stringify({ code: "consent_required", message: "This guest action cannot continue with the current authority or state." }),
+          { status: 403, headers: { "content-type": "application/json" } });
+      }
+      return ok({ type: "continuation_dispatched", submissionId: id(370), claimRequestId: body.claimRequestId, accountId: M,
+        conversationId: baseContext.conversationId, conversationVersion: 1, receiptId: id(372), runId: id(373), memberConversationId: id(374), kind: "new_research" });
+    }
+    if (path === `/v1/runs/${id(373)}`) return ok(queuedSnap(id(373)));
+    if (path === `/v1/runs/${id(373)}/events`) return ok({ events: [] });
+    return ok({});
+  });
+  const renderer = await mountWith(memberAuth);
+  await vi.waitFor(() => expect(resumes).toBe(1));
+  await vi.waitFor(() => expect(allText(renderer)).toMatch(/consent/i));
+  // The exact claim is retained for consent, not reconciled as unknown.
+  const retained = (await held.device.load()).pendingAction;
+  expect(retained?.phase).toBe("claimed");
+  expect(retained?.autoResume).toBe(true);
+  expect(retained?.submissionId).toBe(id(370));
+  // The explicit grant continues the exact retained claim exactly once more.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  await act(async () => { await panelOf(renderer).props.onConsent(); });
+  await vi.waitFor(() => expect(resumes).toBe(2));
+  expect(calls.filter((c) => c.path === "/v1/guest/claim")).toHaveLength(1);
+  expect(await held.device.load()).toBeNull();
+  await act(async () => { headerOf(renderer).props.onDone(); });
+  await vi.waitFor(() => expect(composerOf(renderer).props.draft).toBe(""));
+  await act(async () => { renderer.unmount(); });
+});
+
+it("C-CONSENT-03 real 402 funding denial dismisses distinctly and never auto-resumes", async () => {
+  const text = "What about battery life?";
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: text, consentGranted: true, routeMode: "controlled-research" });
+  await held.device.savePendingAction(seedAuthingPending(380, 381, text, { kind: "new_research", text }), null);
+  let resumes = 0;
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path, body) => {
+    if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return ok({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") {
+      return ok({ submissionId: id(380), authAttemptId: id(381), attemptRevision: 1, state: "authenticating" });
+    }
+    if (path === "/v1/consent" && body?.grant === true) return ok({ granted: true, policyVersion: baseContext.consentPolicyVersion });
+    if (path === "/v1/guest/claim" || path === "/v1/guest/claims/resolve") {
+      return ok({ type: "claim_accepted", submissionId: id(380), requestId: body.claimRequestId, accountId: M, conversationId: baseContext.conversationId,
+        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: baseContext.consentPolicyVersion });
+    }
+    if (path === "/v1/guest/actions/resume") {
+      resumes++;
+      return new Response(JSON.stringify({ code: "allowance_exhausted", message: "This action is saved, but available member allowance is required before it can continue." }),
+        { status: 402, headers: { "content-type": "application/json" } });
+    }
+    return ok({});
+  });
+  const renderer = await mountWith(memberAuth);
+  await vi.waitFor(() => expect(resumes).toBe(1));
+  await vi.waitFor(() => expect(allText(renderer)).toMatch(/allowance/i));
+  // Dismissal of an in-flight continuation keeps its exact phase but disables
+  // automatic continuation; funding can continue it later, consent cannot.
+  const dismissed = (await held.device.load()).pendingAction;
+  expect(dismissed?.phase).toBe("resume_pending");
+  expect(dismissed?.autoResume).toBe(false);
+  expect(dismissed?.submissionId).toBe(id(380));
+  // Consent afterwards must not resurrect the funding-denied action.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  await act(async () => { await panelOf(renderer).props.onConsent(); });
+  await act(async () => { await Promise.resolve(); });
+  expect(resumes).toBe(1);
+  expect((await held.device.load()).state.draft).toBe(text);
+  await act(async () => { renderer.unmount(); });
+});
+
+it("C-CONSENT-04 unknown continuation outcome stays held for reconciliation and is never resent", async () => {
+  const text = "What about battery life?";
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: text, consentGranted: true, routeMode: "controlled-research" });
+  await held.device.savePendingAction(seedAuthingPending(390, 391, text, { kind: "new_research", text }), null);
+  let resumes = 0;
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path, body) => {
+    if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return ok({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") {
+      return ok({ submissionId: id(390), authAttemptId: id(391), attemptRevision: 1, state: "authenticating" });
+    }
+    if (path === "/v1/consent" && body?.grant === true) return ok({ granted: true, policyVersion: baseContext.consentPolicyVersion });
+    if (path === "/v1/guest/claim" || path === "/v1/guest/claims/resolve") {
+      return ok({ type: "claim_accepted", submissionId: id(390), requestId: body.claimRequestId, accountId: M, conversationId: baseContext.conversationId,
+        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: baseContext.consentPolicyVersion });
+    }
+    if (path === "/v1/guest/actions/resume") {
+      resumes++;
+      return new Response(JSON.stringify({ code: "internal_failure", message: "The request could not be completed." }),
+        { status: 500, headers: { "content-type": "application/json" } });
+    }
+    return ok({});
+  });
+  const renderer = await mountWith(memberAuth);
+  await vi.waitFor(() => expect(resumes).toBe(1));
+  await vi.waitFor(() => expect(allText(renderer)).toMatch(/unknown/i));
+  const heldAction = (await held.device.load()).pendingAction;
+  expect(heldAction?.phase).toBe("resume_reconcile");
+  expect(heldAction?.autoResume).toBe(false);
+  expect(heldAction?.submissionId).toBe(id(390));
+  // Consent afterwards must not resend the unresolved continuation.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  await act(async () => { await panelOf(renderer).props.onConsent(); });
+  await act(async () => { await Promise.resolve(); });
+  expect(resumes).toBe(1);
+  expect((await held.device.load()).pendingAction?.submissionId).toBe(id(390));
+  await act(async () => { renderer.unmount(); });
+});
+
+it("C-CONSENT-05 clarification keeps field/ID/revision across the consent hold, resumes once, third message works", async () => {
+  const answer = "answer-budget";
+  const pendingInputId = id(394);
+  const briefRevision = 3;
+  const field = "budget";
+  const payload = { kind: "clarification" as const, text: answer, pendingInputId, briefRevision, field };
+  const expectedDigest = sha256Hex(JSON.stringify(["clarification", answer, pendingInputId, briefRevision, field]));
+  await held.device.saveBootstrap({ ...baseContext, acceptedTurnCount: 1 }, proof);
+  await held.device.saveSnapshot(baseContext.guestContextId, { ...emptyState(), draft: "unrelated third draft", consentGranted: true, routeMode: "controlled-research",
+    run: { runId: id(399), lifecycle: "awaiting_input" as const, phase: "awaiting_input", outcome: null, reportId: null, labeledDemo: false,
+      pendingInput: { id: pendingInputId, type: "clarification" as const, briefRevision, field } } });
+  // Seed an authenticated (provider-complete) clarification: hydration
+  // restores the answer text, and the next Send claims it like a real user.
+  const authed = completeGuestAuth(seedAuthingPending(392, 393, answer, payload), id(393), M, new Date());
+  await held.device.savePendingAction(authed, null);
+  let memberConsentServer: string | null = null;
+  const resumeBodies: any[] = [];
+  const calls: Call[] = [];
+  stubFetch(calls, (method, path, body) => {
+    if (path === "/v1/session") return ok({ accountId: M, actorKind: "member" });
+    if (path === "/v1/auth/capabilities") return ok({ apple: false, google: true, emailCode: false, termsUrl: "https://example.test/terms", privacyUrl: "https://example.test/privacy" });
+    if (path === "/v1/guest/pending-actions/attempts/resolve") {
+      return ok({ submissionId: id(392), authAttemptId: id(393), attemptRevision: 1, state: "authenticating" });
+    }
+    if (path === "/v1/consent" && body?.grant === true) {
+      memberConsentServer = baseContext.consentPolicyVersion;
+      return ok({ granted: true, policyVersion: memberConsentServer });
+    }
+    if (path === "/v1/guest/claim" || path === "/v1/guest/claims/resolve") {
+      return ok({ type: "claim_accepted", submissionId: id(392), requestId: body.claimRequestId, accountId: M, conversationId: baseContext.conversationId,
+        conversationVersion: 1, controlVersion: 1, authorityAllowed: true, budgetAllowed: true, consentPolicyVersion: memberConsentServer });
+    }
+    if (path === "/v1/guest/actions/resume") {
+      resumeBodies.push(body);
+      return ok({ type: "continuation_dispatched", submissionId: id(392), claimRequestId: body.claimRequestId, accountId: M,
+        conversationId: baseContext.conversationId, conversationVersion: 1, receiptId: id(395), runId: id(396), memberConversationId: id(397), kind: "clarification" });
+    }
+    if (path === "/v1/settings") return ok({ liveRouteEnabled: true });
+    if (method === "POST" && path === "/v1/runs") return ok({ runId: id(398), lifecycle: "queued", phase: "preparing", labeledDemo: false });
+    if (path === `/v1/runs/${id(396)}`) return ok(queuedSnap(id(396)));
+    if (path === `/v1/runs/${id(396)}/events`) return ok({ events: [] });
+    if (path === `/v1/runs/${id(398)}`) return ok(queuedSnap(id(398)));
+    if (path === `/v1/runs/${id(398)}/events`) return ok({ events: [] });
+    return ok({});
+  });
+  const renderer = await mountWith(memberAuth);
+  const briefCardOf = () => renderer.root.find((node) => String(node.type) === "ResearchBriefCard");
+  await vi.waitFor(() => expect(briefCardOf().props.clarifyAnswer).toBe(answer));
+  await act(async () => { await briefCardOf().props.onContinue(); });
+  await vi.waitFor(() => expect(calls.filter((c) => c.path === "/v1/guest/claim")).toHaveLength(1));
+  await vi.waitFor(() => expect(allText(renderer)).toMatch(/consent/i));
+  expect(resumeBodies).toHaveLength(0);
+  // The exact clarification identity is retained, not cleared or rewritten.
+  const retained = (await held.device.load()).pendingAction;
+  expect(retained?.phase).toBe("claimed");
+  expect(retained?.payload).toEqual(payload);
+  // The explicit grant continues the exact clarification exactly once.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  await act(async () => { await panelOf(renderer).props.onConsent(); });
+  await vi.waitFor(() => expect(resumeBodies).toHaveLength(1));
+  expect(resumeBodies[0]?.submissionId).toBe(id(392));
+  expect(resumeBodies[0]?.payloadDigest).toBe(expectedDigest);
+  expect(calls.filter((c) => c.path === "/v1/guest/claim")).toHaveLength(1);
+  expect(await held.device.load()).toBeNull();
+  // A clarification never clears the unrelated draft; a third message starts
+  // fresh member research and sends under the member bearer.
+  await act(async () => { headerOf(renderer).props.onDone(); });
+  await vi.waitFor(() => expect(String(composerOf(renderer).props.draft)).toBe("unrelated third draft"));
+  await act(async () => { headerOf(renderer).props.onNewResearch(); });
+  await act(async () => { composerOf(renderer).props.onChange("third member question"); });
+  composerOf(renderer).props.onSend();
+  await vi.waitFor(() => expect(calls.filter((c) => c.method === "POST" && c.path === "/v1/runs")).toHaveLength(1));
+  const admission = calls.find((c) => c.method === "POST" && c.path === "/v1/runs");
+  expect(admission?.body.question).toBe("third member question");
+  expect(admission?.auth).toBe(`Bearer ${memberToken}`);
+  await vi.waitFor(() => expect(composerOf(renderer).props.draft).toBe(""));
   await act(async () => { renderer.unmount(); });
 });

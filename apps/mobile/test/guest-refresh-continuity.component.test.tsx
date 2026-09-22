@@ -11,8 +11,10 @@ import { sha256Hex } from "../src/sha256";
 
 // Held-out AUD05 refresh matrix: same-account renewal retains action ID,
 // reader generation, view lease, reading anchor and focus; identity is keyed
-// on account/principal epochs, never on bearer strings. Expiry 2027 resists
-// clock rot; seeded journal windows stay within the 24h validity span.
+// on account/principal epochs, never on bearer strings. F05 clock control: the
+// canonical 2026-09-22 fixture deadline is immutable and is never moved forward
+// here; time is frozen before it so this whole suite passes under any host
+// date. Seeded journal windows stay within the 24h validity span.
 const held = vi.hoisted(() => ({ device: null as any, session: null as any, id: 500 }));
 vi.mock("react-native", () => ({
   AccessibilityInfo: { announceForAccessibility: () => undefined, isReduceMotionEnabled: async () => false, addEventListener: () => ({ remove() {} }), setAccessibilityFocus: () => undefined },
@@ -61,7 +63,7 @@ import { AppInner } from "../App";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const proof = "p".repeat(43);
-const EXPIRY = "2027-01-01T00:00:00.000Z";
+const EXPIRY = "2026-09-22T00:00:00.000Z";
 const M = id(501);
 
 type Call = { method: string; path: string; body: any; auth: string | null };
@@ -88,6 +90,8 @@ const admitted = (runId: string) => ({ runId, lifecycle: "queued", phase: "prepa
 
 beforeEach(async () => {
   held.id = 500;
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-21T01:00:00.000Z"));
   const ordinary = memoryStore(), native = memoryStore(), secure = memoryStore();
   const content = createProtectedContentStore(ordinary, native);
   await content.setItem("deep.install.v2", "1");
@@ -98,7 +102,7 @@ beforeEach(async () => {
     redactRunContent: async () => undefined, readCorrectionDocuments: async () => null, finishCorrectionDocuments: async () => undefined };
   vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
 });
-afterEach(() => { api.activateSession(null); api.clearGuest(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { api.activateSession(null); api.clearGuest(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 const composerOf = (renderer: TestRenderer.ReactTestRenderer) =>
   renderer.root.find((node) => String(node.type) === "ResearchComposer");
