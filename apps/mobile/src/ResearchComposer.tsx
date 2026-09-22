@@ -50,7 +50,7 @@ export function ResearchComposer({
   editable,
   sendDisabled,
   pendingAdmission,
-  placeholder = "Ask anything…",
+  placeholder = "What are you trying to understand?",
   sendLabel,
   sendAccessLabel = "Start research",
   attachOpen = false,

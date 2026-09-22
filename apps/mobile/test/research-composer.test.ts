@@ -9,15 +9,18 @@ describe("one-sentence composer copy", () => {
       readFileSync(join(import.meta.dirname, "../App.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/ResearchHeader.tsx"), "utf8"),
       readFileSync(join(import.meta.dirname, "../src/composer-copy.ts"), "utf8"),
+      readFileSync(join(import.meta.dirname, "../src/EmptyHome.tsx"), "utf8"),
     ].join("\n");
-    expect(composer).toContain('placeholder = "Ask anything…"');
+    expect(composer).toContain('placeholder = "What are you trying to understand?"');
     expect(composer).toContain('sendAccessLabel = "Start research"');
     expect(composer).toContain('sendLabel ?? (pendingAdmission ? "Retry" : "Research")');
     expect(composer).toContain("iconSend");
     expect(composer).toContain("ArrowUpIcon");
     expect(composer).toContain("Stop research");
     expect(composer).toContain("Add sources");
-    expect(app).toContain("Ask anything.");
+    expect(app).toContain("Research what");
+    expect(app).toContain("Understand the evidence. See the trade-offs.");
+    expect(app).toContain("What are you trying to understand?");
     expect(app).not.toContain("Ask anything. One sentence is enough. Files are optional.");
     expect(app).toContain("<ResearchComposer");
     expect(app).toContain("composerDockBottomInset");
@@ -35,7 +38,8 @@ describe("one-sentence composer copy", () => {
     expect(app).not.toContain("Ionicons");
     expect(app).not.toContain(">New research</Text>");
     expect(app).not.toContain("Concise");
-    expect(app).toContain("should I move to Texas");
+    expect(app).not.toContain("should I move to Texas");
+    expect(app).toContain("Choose a starting point");
     expect(app).toMatch(/onComposerFollowUp/);
     expect(composer).toContain("editable={editable}");
     expect(composer).toContain("inProgress && Boolean(onCancel) && !hasDraft");

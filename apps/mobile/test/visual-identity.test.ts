@@ -40,7 +40,7 @@ describe("original visual identity", () => {
     expect(styles).toMatch(/librarySearch:\s*\{[^}]*borderRadius: radius\.md/);
     expect(styles).not.toMatch(/librarySearch:\s*\{[^}]*borderBottomWidth/);
     expect(styles).toContain("libraryMeta:");
-    expect(styles).toMatch(/welcomeDisplay: \{ \.\.\.typeTokens\.display/);
+    expect(styles).toMatch(/welcomeDisplay: \{ fontSize: 28, lineHeight: 34, fontWeight: "600"/);
     expect(styles).not.toMatch(/libraryMeta:\s*\{[^}]*textTransform: "uppercase"/);
   });
 

@@ -13,7 +13,7 @@ describe("phase B consumer chrome", () => {
     expect(composer.attachIcon).toBeGreaterThanOrEqual(18);
     expect(composer.maxLines).toBe(4);
     const src = readFileSync(join(import.meta.dirname, "../src/ResearchComposer.tsx"), "utf8");
-    expect(src).toContain("Ask anything…");
+    expect(src).toContain("What are you trying to understand?");
     expect(src).toContain("ActionGlyph");
     expect(src).toContain("reducedMotion");
   });

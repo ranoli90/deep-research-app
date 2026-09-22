@@ -2997,9 +2997,8 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
             </View> : null}
             {!state.run && !state.report && !state.pendingAdmission ? (
               <EmptyHome
-                title="Ask anything."
-                examples={["should I move to Texas", "best laptop under 2k", "research this company"]}
-                onPick={(example) => setState((s) => ({ ...s, draft: example }))}
+                typing={state.draft.trim().length > 0}
+                onPickStarter={(scaffold) => setState((s) => ({ ...s, draft: s.draft.trim() ? s.draft : scaffold }))}
                 styles={styles}
               />
             ) : null}
