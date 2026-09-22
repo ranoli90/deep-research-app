@@ -3375,7 +3375,38 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
               })();
             }}
             onRevoke={async () => {
-              if (!token) return;
+              if (!token) {
+                // R01: guest revocation must reach the guest authority too.
+                // The displayed guest switch previously did nothing without a
+                // member token. Confirm the server revocation, adopt its
+                // advanced control version (fencing stale work), mirror the
+                // higher consent revision into the latest reader, and persist
+                // through the same owned boundary as a grant.
+                const context = guestContextRef.current;
+                const proof = guestProof.current;
+                if (!context || !proof) return;
+                try {
+                  setCorrectionFiles([]);
+                  const result = await api.guest.consent(proof, false);
+                  if (result?.granted !== false) throw new Error("Current guest consent revocation could not be confirmed.");
+                  if (guestContextRef.current?.guestContextId !== context.guestContextId) return;
+                  const updated = readGuestContext({
+                    ...guestContextRef.current,
+                    consentGranted: false,
+                    controlVersion: typeof result.controlVersion === "number" ? result.controlVersion : guestContextRef.current.controlVersion,
+                  });
+                  await guestDevice.updateContext(updated);
+                  guestContextRef.current = updated; setGuestContext(updated);
+                  guestRunEpoch.current++;
+                  const revoked = { ...withConsent(latestUi.current, false), error: "AI processing consent was revoked. Your draft and report remain saved." };
+                  latestUi.current = revoked;
+                  await saveGuestReader(revoked);
+                } catch (error) {
+                  if (isSupersededRequest(error)) return;
+                  setStateRaw((s) => ({ ...s, error: error instanceof Error ? error.message : "Could not confirm consent revocation. Retry." }));
+                }
+                return;
+              }
               let accountGuard: ReturnType<typeof api.capture>;
               let credential: () => string;
               try {
