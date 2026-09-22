@@ -94,4 +94,115 @@ describe("explainFromExistingEvidence", () => {
     expect(result.answer).toBe(EXPLAIN_EVIDENCE_INCOMPLETE);
     expect(JSON.stringify(result)).not.toMatch(/publicQueryPermission|grant public/i);
   });
+
+  it("keeps a grounded duration excerpt inspectable but partial for a why + national-scope question", () => {
+    const DURATION = "The pilot ran for 18 months.";
+    const result = explainFromExistingEvidence(input({
+      message: "Why did the pilot succeed and does it generalize nationally?",
+      blocks: [{ id: "answer", text: DURATION, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: DURATION, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: DURATION }],
+    }));
+    expect(result.evidenceComplete).toBe(false);
+    expect(result.answer).toBe(DURATION);
+    expect(result.citationPassageIds).toEqual(["p1"]);
+  });
+
+  it("treats a grounded duration statement as a complete answer to how-long", () => {
+    const DURATION = "The pilot lasted 18 months.";
+    const result = explainFromExistingEvidence(input({
+      message: "How long did the pilot run?",
+      blocks: [{ id: "answer", text: DURATION, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: DURATION, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: DURATION }],
+    }));
+    expect(result.evidenceComplete).toBe(true);
+    expect(result.citationPassageIds).toEqual(["p1"]);
+  });
+
+  it("requires causal wording to complete a why question", () => {
+    const OBSERVATIONAL = "The pilot succeeded in 2023.";
+    const partial = explainFromExistingEvidence(input({
+      message: "Why did the pilot succeed?",
+      blocks: [{ id: "answer", text: OBSERVATIONAL, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: OBSERVATIONAL, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: OBSERVATIONAL }],
+    }));
+    expect(partial.evidenceComplete).toBe(false);
+    expect(partial.answer).toBe(OBSERVATIONAL);
+
+    const CAUSAL = "The pilot succeeded because of strong community buy-in.";
+    const complete = explainFromExistingEvidence(input({
+      message: "Why did the pilot succeed?",
+      blocks: [{ id: "answer", text: CAUSAL, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: CAUSAL, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: CAUSAL }],
+    }));
+    expect(complete.evidenceComplete).toBe(true);
+    expect(complete.citationPassageIds).toEqual(["p1"]);
+  });
+
+  it("requires both causal and comparative bearing for a causal comparison question", () => {
+    const BARE = "Alpha is faster than Beta.";
+    const partial = explainFromExistingEvidence(input({
+      message: "Why is Alpha better than Beta?",
+      blocks: [{ id: "answer", text: BARE, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: BARE, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: BARE }],
+    }));
+    expect(partial.evidenceComplete).toBe(false);
+
+    const BECAUSE = "Alpha is faster than Beta because of its larger battery.";
+    const complete = explainFromExistingEvidence(input({
+      message: "Why is Alpha better than Beta?",
+      blocks: [{ id: "answer", text: BECAUSE, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: BECAUSE, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: BECAUSE }],
+    }));
+    expect(complete.evidenceComplete).toBe(true);
+    expect(complete.citationPassageIds).toEqual(["p1"]);
+  });
+
+  it("does not complete a conditional question with an unconditional statement", () => {
+    const UNCONDITIONAL = "The pilot succeeded with strong funding.";
+    const partial = explainFromExistingEvidence(input({
+      message: "Will the pilot succeed if funding continues?",
+      blocks: [{ id: "answer", text: UNCONDITIONAL, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: UNCONDITIONAL, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: UNCONDITIONAL }],
+    }));
+    expect(partial.evidenceComplete).toBe(false);
+    expect(partial.answer).toBe(UNCONDITIONAL);
+
+    const CONDITIONAL = "If funding continues, the pilot will succeed.";
+    const complete = explainFromExistingEvidence(input({
+      message: "Will the pilot succeed if funding continues?",
+      blocks: [{ id: "answer", text: CONDITIONAL, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: CONDITIONAL, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: CONDITIONAL }],
+    }));
+    expect(complete.evidenceComplete).toBe(true);
+    expect(complete.citationPassageIds).toEqual(["p1"]);
+  });
+
+  it("does not complete a current question with a historical statement", () => {
+    const HISTORICAL = "The price was $1400 in 2019.";
+    const partial = explainFromExistingEvidence(input({
+      message: "Is the price current?",
+      blocks: [{ id: "answer", text: HISTORICAL, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: HISTORICAL, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: HISTORICAL }],
+    }));
+    expect(partial.evidenceComplete).toBe(false);
+
+    const CURRENT = "The price is currently $1400.";
+    const complete = explainFromExistingEvidence(input({
+      message: "Is the price current?",
+      blocks: [{ id: "answer", text: CURRENT, claimIds: ["c1"], citationIds: ["p1"] }],
+      claims: [{ id: "c1", text: CURRENT, passageIds: ["p1"] }],
+      passages: [{ id: "p1", exactText: CURRENT }],
+    }));
+    expect(complete.evidenceComplete).toBe(true);
+    expect(complete.citationPassageIds).toEqual(["p1"]);
+  });
 });

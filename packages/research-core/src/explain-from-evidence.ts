@@ -67,14 +67,96 @@ function focusTerms(message: string): string[] {
 
 function relevantToFocus(text: string, focus: readonly string[]): boolean {
   if (!focus.length) return false;
-  const tokens = new Set(tokenize(text).map((t) => t.replace(/s$/u, "")));
-  return focus.some((term) => tokens.has(term.replace(/s$/u, "")));
+  const tokens = new Set(tokenize(text).map(stemTerm));
+  return focus.some((term) => tokens.has(stemTerm(term)));
 }
+
+function sharesEveryFocus(text: string, focus: readonly string[]): boolean {
+  const tokens = new Set(tokenize(text).map(stemTerm));
+  return focus.every((term) => tokens.has(stemTerm(term)));
+}
+
+const stemTerm = (term: string): string => term.replace(/s$/u, "");
 
 function usableExplanationText(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed || isReportSectionLabel(trimmed)) return false;
   return !sourceLooksLikeInjection(trimmed) && sourceCannotEscalatePrivilege(trimmed) === null;
+}
+
+/** Assertion shapes a follow-up can request. A statement must carry the requested shape. */
+type ExplanationMode = "cause" | "duration" | "comparison" | "conditional" | "current" | "historical";
+
+const CAUSE_REQUEST = /\b(?:why|how did|how come|reason|reasons|cause[sd]?)\b/iu;
+const CAUSE_STATEMENT =
+  /\b(?:because|due to|led to|leading to|result(?:ed|s|ing)? in|caused|driven by|as a result|owing to|attributable to|thanks to|stems? from|accounted for)\b/iu;
+const DURATION =
+  /\b(?:how long|how many (?:years?|months?|weeks?|days?|hours?|minutes?)|duration|lasted|lasting|lasts?|spanned|spanning)\b|\b\d+(?:\.\d+)?\s*(?:years?|months?|weeks?|days?|hours?|minutes?|seconds?)\b/iu;
+const COMPARISON =
+  /\b(?:compare|compared|versus|vs\.?|difference|better|worse|faster|slower|cheaper|more expensive|higher|lower|greater|less than|than)\b/iu;
+const CONDITIONAL = /\b(?:if|unless|provided that|only when|depending on|subject to|in the event|under what conditions)\b/iu;
+const CURRENT = /\b(?:current(?:ly)?|now|today|latest|as of|right now|this (?:year|month|week|quarter)|up to date|up-to-date)\b/iu;
+const HISTORICAL = /\b(?:historically|formerly|previously|originally|founded|established|was|were)\b|\bin (?:1[0-9]|20)\d{2}\b|\bsince (?:1[0-9]|20)\d{2}\b/iu;
+
+/** A clause's requested explanation obligation. `requireAllFocus` is the narrow why-not reason case. */
+type ExplanationObligation = {
+  focus: string[];
+  requiredModes: readonly ExplanationMode[];
+  requireAllFocus: boolean;
+};
+
+/** Split only at real clause joins: a question auxiliary or wh-word must start the next clause. */
+const CLAUSE_JOIN =
+  /\s+\b(?:and|but|also|plus)\b\s+(?=(?:does|do|did|is|are|was|were|can|could|will|would|should|has|have|had|how|why|what|when|where|which|who|whether|if)\b)/giu;
+
+function explanationObligations(message: string): ExplanationObligation[] {
+  const clauses = message
+    .split(/[?;]+/u)
+    .flatMap((sentence) => sentence.split(CLAUSE_JOIN))
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+  const list = clauses.length ? clauses : [message.trim()];
+  return list.map((clause) => {
+    const focus = focusTerms(clause);
+    const modes: ExplanationMode[] = [];
+    if (CAUSE_REQUEST.test(clause)) modes.push("cause");
+    if (DURATION.test(clause)) modes.push("duration");
+    if (COMPARISON.test(clause)) modes.push("comparison");
+    if (CONDITIONAL.test(clause)) modes.push("conditional");
+    if (CURRENT.test(clause)) modes.push("current");
+    if (HISTORICAL.test(clause)) modes.push("historical");
+    // "Why not <subject>?" names a candidate and asks for its reason; a grounded
+    // statement about that exact subject is inspectable context. Other cause
+    // questions (why did X happen) still require a causal statement.
+    const whyNot = /\bwhy\s+(?:not|didn'?t|don'?t|doesn'?t)\b/iu.test(clause);
+    const requireAllFocus = whyNot && modes.length === 1 && modes[0] === "cause";
+    return { focus, requiredModes: requireAllFocus ? [] : modes, requireAllFocus };
+  });
+}
+
+function statementModes(text: string): Set<ExplanationMode> {
+  const modes = new Set<ExplanationMode>();
+  if (CAUSE_STATEMENT.test(text)) modes.add("cause");
+  if (DURATION.test(text)) modes.add("duration");
+  if (COMPARISON.test(text)) modes.add("comparison");
+  if (CONDITIONAL.test(text)) modes.add("conditional");
+  if (CURRENT.test(text)) modes.add("current");
+  if (HISTORICAL.test(text)) modes.add("historical");
+  return modes;
+}
+
+function obligationRelevant(text: string, obligation: ExplanationObligation): boolean {
+  return relevantToFocus(text, obligation.focus);
+}
+
+/** A grounded statement satisfies an obligation only when it carries every requested shape.
+ * Lexical overlap with the subject is context, never proof that the requested explanation is covered.
+ */
+function statementSatisfies(text: string, obligation: ExplanationObligation): boolean {
+  if (!obligation.focus.length || !obligationRelevant(text, obligation)) return false;
+  if (obligation.requireAllFocus) return sharesEveryFocus(text, obligation.focus);
+  const modes = statementModes(text);
+  return obligation.requiredModes.every((mode) => modes.has(mode));
 }
 
 function passageGroundsText(passageText: string, claimText: string): boolean {
@@ -105,17 +187,18 @@ function supportingPassageIds(
  * Never mutates a brief, invents facts, or treats retrieved injection as permission.
  */
 export function explainFromExistingEvidence(input: ExplainFromExistingEvidenceInput): ExplainFromExistingEvidenceResult {
-  const focus = focusTerms(input.message);
+  const obligations = explanationObligations(input.message);
   const owned = new Map(input.passages.map((p) => [p.id, p]));
   const claimsById = new Map(input.claims.map((c) => [c.id, c]));
   const selected: { text: string; citationPassageIds: string[] }[] = [];
   const usedClaims = new Set<string>();
+  const relevant = (text: string) => obligations.some((obligation) => obligationRelevant(text, obligation));
 
   for (const block of input.blocks) {
     if (!usableExplanationText(block.text)) continue;
     const mapped = block.claimIds.map((id) => claimsById.get(id)).filter((c): c is ExplainEvidenceClaim => Boolean(c));
-    const relevant = relevantToFocus(block.text, focus) || mapped.some((c) => relevantToFocus(c.text, focus));
-    if (!relevant) continue;
+    const relevantBlock = relevant(block.text) || mapped.some((c) => relevant(c.text));
+    if (!relevantBlock) continue;
     const candidateIds = [...block.citationIds, ...mapped.flatMap((c) => c.passageIds)];
     const supporting = supportingPassageIds(block.text, candidateIds, owned);
     if (!supporting.length) continue;
@@ -124,7 +207,7 @@ export function explainFromExistingEvidence(input: ExplainFromExistingEvidenceIn
   }
 
   for (const claim of input.claims) {
-    if (usedClaims.has(claim.id) || !usableExplanationText(claim.text) || !relevantToFocus(claim.text, focus)) continue;
+    if (usedClaims.has(claim.id) || !usableExplanationText(claim.text) || !relevant(claim.text)) continue;
     const supporting = supportingPassageIds(claim.text, claim.passageIds, owned);
     if (!supporting.length) continue;
     selected.push({ text: claim.text.trim(), citationPassageIds: supporting });
@@ -149,10 +232,16 @@ export function explainFromExistingEvidence(input: ExplainFromExistingEvidenceIn
     }
   }
 
+  // Related grounded statements stay inspectable, but `evidenceComplete` is true
+  // only when every requested explanation obligation is actually covered.
+  const evidenceComplete = obligations.every((obligation) =>
+    selected.some((item) => statementSatisfies(item.text, obligation)),
+  );
+
   return {
     version: EXPLAIN_FROM_EXISTING_EVIDENCE_VERSION,
     answer: selected.map((item) => item.text).join("\n"),
     citationPassageIds,
-    evidenceComplete: true,
+    evidenceComplete,
   };
 }

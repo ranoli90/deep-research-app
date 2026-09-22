@@ -42,6 +42,7 @@ import {
   parseCorrection,
   routeFollowUp,
   explainFromExistingEvidence,
+  EXPLAIN_EVIDENCE_INCOMPLETE,
   shouldFullRerun,
   encodeSourcePolicy,
   mergeSteeringIntoPolicy,
@@ -66,6 +67,7 @@ import {
 import { reserveAllowance } from "../modules/billing.js";
 import { pinRouteCapabilities } from "../modules/route-capabilities.js";
 import { toSanitizedRunEvent } from "../modules/public-activity.js";
+import { citedPassageIds, loadSourceActivity } from "../modules/source-activity.js";
 import { measureRunCost } from "../modules/run-cost.js";
 import {
   cancelOwnedRun,
@@ -634,6 +636,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     const after = Number((req.query as { after?: string }).after ?? 0);
     const events = await listEvents(pool, id, after);
+    const sourceActivity = await loadSourceActivity(pool, { runId: id, accountId: owner, citedPassageIds: null });
     return {
       events: events.map((e) =>
         toSanitizedRunEvent({
@@ -647,6 +650,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           payload: e.payload,
         }),
       ),
+      sourceActivity,
     };
   });
 
@@ -1058,6 +1062,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           answer: explained.answer,
           citationPassageIds: explained.citationPassageIds,
           evidenceComplete: explained.evidenceComplete,
+          // A related grounded excerpt is partial context, not a complete answer to the
+          // requested obligation; only the honest sentinel means no owned evidence at all.
+          evidenceCoverage: explained.evidenceComplete
+            ? "complete"
+            : explained.answer === EXPLAIN_EVIDENCE_INCOMPLETE
+              ? "none"
+              : "partial",
           ...(explained.evidenceComplete ? {} : { needsTargetedResearch: true }),
         };
       }
@@ -1285,6 +1296,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const report = await getReportForAccount(pool, reportId, owner);
     if (!report) return reply.code(404).send(err("permission_denied", "Report not found.", crypto.randomUUID()));
     const evidence = await loadOwnedExplanationEvidence(pool, { runId: report.run_id, accountId: owner, report });
+    const sourceActivity = await loadSourceActivity(pool, {
+      runId: report.run_id,
+      accountId: owner,
+      citedPassageIds: citedPassageIds(evidence.blocks),
+    });
     return {
       reportId: report.id,
       runId: report.run_id,
@@ -1295,6 +1311,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       limitations: report.limitations,
       sourceAccessSummary: report.source_access_summary,
       changeSummary: report.change_summary,
+      sourceActivity,
       routeMode: report.route_mode,
       labeledDemo: report.route_mode === "fixture",
     };

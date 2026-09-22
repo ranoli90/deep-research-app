@@ -119,5 +119,10 @@ describe("GET /v1/runs/:id/events sanitized consumer DTO", () => {
     }
     const nist = body.events.find((e) => (e.activity as { sourceDomain?: string } | null)?.sourceDomain === "nist.gov");
     expect(nist?.activity).toMatchObject({ kind: "source_reading", sourceTitle: "NIST guidance", sourceDomain: "nist.gov" });
+    // Distinct source counters are carried beside the events; no report exists, so
+    // cited counts stay omitted instead of being inferred from event or passage numbers.
+    expect(res.json().sourceActivity).toMatchObject({ version: "source-activity.v1", citedSources: null });
+    expect(res.json().sourceActivity.discoveredSources).toBe(0);
+    expect(res.json().sourceActivity.readSources).toBe(0);
   });
 });

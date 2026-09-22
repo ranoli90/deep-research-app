@@ -302,6 +302,13 @@ describe("ENG-033 follow-up explain from owned evidence", () => {
     });
     expect(report.statusCode).toBe(200);
     expect(report.json().claims).toEqual(expect.arrayContaining([expect.objectContaining({ text: DELL_TEXT })]));
+    // Three passages from one source would still be one cited source; here one passage one source.
+    expect(report.json().sourceActivity).toMatchObject({
+      version: "source-activity.v1",
+      citedSources: 1,
+      citedVersions: 1,
+      citedPassages: 1,
+    });
   });
 
   it("does not treat a verify message as verification or a diagnostic child", async () => {

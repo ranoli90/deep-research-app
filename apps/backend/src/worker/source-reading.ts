@@ -78,7 +78,7 @@ export async function executeSourceRead(config:AppConfig,session:FencedSession,a
   await bumpEvidence(db,args.runId);
   await emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_read",phase:"researching",
    summary:result.receipt.outcome==="successful_body"?"Source reading finished; extracted evidence retains its access limitations.":"The source could not provide readable evidence.",
-   payload:{operationId:admitted.id,sourceVersionId:versionId,outcome:result.receipt.outcome}});
+   payload:{operationId:admitted.id,sourceVersionId:versionId,sourceHandle:action.sourceHandle,outcome:result.receipt.outcome}});
   return versionId;
  });
  return admitted.versionId ? load() : {kind:"blocked" as const,reason:"redirect_source_policy_denied",operationId:admitted.id};
