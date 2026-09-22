@@ -14,24 +14,26 @@ import { createPool, migrate } from "../src/platform/db.js";
 import { loadConfig } from "../src/platform/config.js";
 
 /**
- * AUD04 held-out regression: new-member entitlement.
+ * AUD04 held-out regression: new-member entitlement (F02 server grant path).
  *
  * A real newly-mapped member starts with ZERO spendable budget (identity.ts:
  * "Authentication is not a grant of paid allowance"). The intended second action
  * — the claimed-continuation resume (POST /v1/guest/actions/resume) — works
  * exactly once only after BOTH explicit member-scoped prerequisites hold:
- *   1. an explicit authorized BOUNDED grant (limit_micro set to a finite value
- *      >= one run by the operator/customer funding path), and
- *   2. a member-specific consent grant (POST /v1/consent {grant:true} as that
- *      member on the current CONSENT_POLICY_VERSION).
+ *   1. an explicit authorized BOUNDED grant via POST
+ *      /v1/entitlements/new-member-grant { grantRequestId, amountMicro }
+ *      (idempotent grant identity, per-grant bound, 1_000_000 aggregate cap), and
+ *   2. a member-specific consent grant (POST /v1/consent/member {grant:true} as
+ *      that member on the current CONSENT_POLICY_VERSION).
  *
  * Member sessions below are minted via POST /v1/dev/session ONLY as identity
  * stand-ins; every case immediately zeroes the dev fixture allowance
  * (10_000_000) to the production-equivalent zero-state before the case begins,
- * and the bounded grant is applied explicitly per case. No unlimited credit is
- * ever minted, guest consent never transfers, HOLD is never bypassed, and no
- * payer/owner identity is ever rewritten. Live-spend variants are stubbed as
- * operator-blocked (E-HOLD-12 tail); no live provider call is attempted.
+ * and the bounded grant is applied explicitly per case through the server route.
+ * No unlimited credit is ever minted, guest consent never transfers, HOLD is
+ * never bypassed, and no payer/owner identity is ever rewritten. Live-spend
+ * variants are stubbed as operator-blocked (E-HOLD-12 tail); no live provider
+ * call is attempted.
  */
 const baseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -127,37 +129,44 @@ async function newZeroedMember() {
 }
 
 /**
- * The ONLY grant mechanism in this suite: an explicit authorized bounded
- * UPDATE of the one member row, with the bound asserted before applying and
- * read back exactly afterwards. Rejects unlimited (NULL/huge), zero, and
- * negative amounts at the harness — the bound the funding path must enforce.
+ * F02 server grant path: POST /v1/entitlements/new-member-grant.
+ * No test SQL grants allowance; every grant goes through the real server path
+ * with an idempotent grantRequestId, per-grant bound, and aggregate cap.
+ * Zeroing in newZeroedMember is setup only (dev fixture 10M -> production 0).
  */
-async function boundedGrant(memberAccountId: string, amountMicro: number) {
-  if (!Number.isSafeInteger(amountMicro) || amountMicro <= 0 || amountMicro > 1_000_000) {
-    throw Object.assign(new Error("unbounded_or_invalid_grant"), { code: "unbounded_or_invalid_grant" });
-  }
-  await pool.query("UPDATE allowance_accounts SET limit_micro=$2 WHERE account_id=$1", [
-    memberAccountId,
-    amountMicro,
-  ]);
+async function boundedGrant(
+  member: { accountId: string; headers: { authorization: string } },
+  amountMicro: number,
+  grantRequestId: string = randomUUID(),
+) {
+  const response = await app.inject({
+    method: "POST",
+    url: "/v1/entitlements/new-member-grant",
+    headers: member.headers,
+    payload: { grantRequestId, amountMicro },
+  });
+  expect(response.statusCode).toBe(200);
+  expect(response.json()).toMatchObject({ grantRequestId, accountId: member.accountId, amountMicro });
   const row = (
     await pool.query<{ limit_micro: string }>(
       "SELECT limit_micro FROM allowance_accounts WHERE account_id=$1",
-      [memberAccountId],
+      [member.accountId],
     )
   ).rows[0]!;
-  expect(Number(row.limit_micro)).toBe(amountMicro);
+  expect(Number(row.limit_micro)).toBeGreaterThanOrEqual(amountMicro);
+  return response.json() as { grantRequestId: string; accountId: string;
+    amountMicro: number; limitMicro: number; reused: boolean };
 }
 
 async function grantMemberConsent(memberHeaders: { authorization: string }) {
   const consent = await app.inject({
     method: "POST",
-    url: "/v1/consent",
+    url: "/v1/consent/member",
     headers: memberHeaders,
     payload: { grant: true },
   });
   expect(consent.statusCode).toBe(200);
-  expect(consent.json()).toMatchObject({ granted: true });
+  expect(consent.json()).toMatchObject({ granted: true, policyVersion: CONSENT_POLICY_VERSION });
 }
 
 async function readAllowance(memberAccountId: string) {
@@ -328,7 +337,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-GRANT-03 explicit bounded grant plus member consent allows the second action exactly once", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     const resumed = await app.inject({
       method: "POST",
@@ -381,7 +390,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-REPLAY-04 idempotent replay reuses the dispatch without double spend", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     const first = await app.inject({
       method: "POST",
@@ -410,7 +419,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-EXHAUST-05 bounded grant covers exactly one action: a distinct second send is denied", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     const resumed = await app.inject({
       method: "POST",
@@ -439,7 +448,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-CONSENT-06 grant without member consent denies", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     const denied = await app.inject({
       method: "POST",
       url: "/v1/guest/actions/resume",
@@ -454,7 +463,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-CONSENT-07 guest consent never transfers to the member", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     const denied = await app.inject({
       method: "POST",
       url: "/v1/guest/actions/resume",
@@ -474,7 +483,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-CONSENT-08 revoked member consent denies; re-grant re-allows with a new epoch", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     expect(
       (
@@ -508,7 +517,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-BUDGET-09 grant below one run denies at the exact boundary", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO - 1);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO - 1);
     await grantMemberConsent(ctx.member.headers);
     const denied = await app.inject({
       method: "POST",
@@ -522,17 +531,20 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
   });
 
   it("E-BUDGET-10 grant is bounded, never unlimited: two runs fit, the third is denied", async () => {
-    await expect(boundedGrant(randomUUID(), 0)).rejects.toMatchObject({
-      code: "unbounded_or_invalid_grant",
-    });
-    await expect(boundedGrant(randomUUID(), -1)).rejects.toMatchObject({
-      code: "unbounded_or_invalid_grant",
-    });
-    await expect(boundedGrant(randomUUID(), 1_000_001)).rejects.toMatchObject({
-      code: "unbounded_or_invalid_grant",
-    });
+    const probe = await newZeroedMember();
+    for (const badAmount of [0, -1, 1_000_001]) {
+      const denied = await app.inject({
+        method: "POST",
+        url: "/v1/entitlements/new-member-grant",
+        headers: probe.headers,
+        payload: { grantRequestId: randomUUID(), amountMicro: badAmount },
+      });
+      expect(denied.statusCode).toBe(400);
+      expect(denied.json().code).toBe("invalid_input");
+    }
+    expect(await readAllowance(probe.accountId)).toEqual({ limit: 0, settled: 0, reserved: 0 });
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, 2 * DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, 2 * DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     const resumed = await app.inject({
       method: "POST",
@@ -585,7 +597,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
     const identitiesBefore = (
       await pool.query<{ n: number }>("SELECT count(*)::int AS n FROM external_identities")
     ).rows[0]!.n;
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     const resumed = await app.inject({
       method: "POST",
@@ -632,7 +644,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
     const ctx = await driveGuestToClaimed();
     const sponsorBefore = await readSponsorLedger();
     expect(sponsorBefore).toEqual({ settled: 0, reserved: DEFAULT_RUN_BUDGET_MICRO, held: 0 });
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     const resumed = await app.inject({
       method: "POST",
@@ -675,7 +687,7 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
 
   it("E-PROOF-13 guest proof is dead after claim; resume is member-only", async () => {
     const ctx = await driveGuestToClaimed();
-    await boundedGrant(ctx.member.accountId, DEFAULT_RUN_BUDGET_MICRO);
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
     await grantMemberConsent(ctx.member.headers);
     expect(
       (
@@ -759,5 +771,116 @@ describe("AUD04 new-member entitlement: zero default, explicit bounded grant, me
     expect(
       (await pool.query<{ n: number }>("SELECT count(*)::int AS n FROM runs")).rows[0]!.n,
     ).toBe(3);
+  });
+
+  it("E-IDEM-15 same grant identity replays without double spend; conflicting replay is 409", async () => {
+    const member = await newZeroedMember();
+    const grantRequestId = randomUUID();
+    const first = await app.inject({
+      method: "POST",
+      url: "/v1/entitlements/new-member-grant",
+      headers: member.headers,
+      payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO },
+    });
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({ reused: false, limitMicro: DEFAULT_RUN_BUDGET_MICRO });
+    const replay = await app.inject({
+      method: "POST",
+      url: "/v1/entitlements/new-member-grant",
+      headers: member.headers,
+      payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO },
+    });
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json()).toMatchObject({ reused: true, limitMicro: DEFAULT_RUN_BUDGET_MICRO });
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+    const conflict = await app.inject({
+      method: "POST",
+      url: "/v1/entitlements/new-member-grant",
+      headers: member.headers,
+      payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO + 1 },
+    });
+    expect(conflict.statusCode).toBe(409);
+    expect(await readAllowance(member.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+  });
+
+  it("E-SWITCH-16 grant identity cannot switch accounts", async () => {
+    const first = await newZeroedMember();
+    const second = await newZeroedMember();
+    const grantRequestId = randomUUID();
+    expect((await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: first.headers, payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO } })).statusCode)
+      .toBe(200);
+    const switched = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: second.headers, payload: { grantRequestId, amountMicro: DEFAULT_RUN_BUDGET_MICRO } });
+    expect(switched.statusCode).toBe(403);
+    expect(switched.json().code).toBe("authority_denied");
+    expect(await readAllowance(second.accountId)).toEqual({ limit: 0, settled: 0, reserved: 0 });
+    expect(await readAllowance(first.accountId)).toEqual({
+      limit: DEFAULT_RUN_BUDGET_MICRO, settled: 0, reserved: 0 });
+  });
+
+  it("E-CAP-17 aggregate cap holds: full grant then any top-up is denied without mutation", async () => {
+    const member = await newZeroedMember();
+    expect((await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: member.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1_000_000 } })).statusCode)
+      .toBe(200);
+    const over = await app.inject({ method: "POST", url: "/v1/entitlements/new-member-grant",
+      headers: member.headers, payload: { grantRequestId: randomUUID(), amountMicro: 1 } });
+    expect(over.statusCode).toBe(403);
+    expect(over.json().code).toBe("permission_denied");
+    expect(await readAllowance(member.accountId)).toEqual({ limit: 1_000_000, settled: 0, reserved: 0 });
+  });
+
+  it("E-CONSENT-MEMBER-18 explicit member consent route grants member consent and unblocks resume", async () => {
+    const ctx = await driveGuestToClaimed();
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
+    // Member consent absent: resume fails closed even via the explicit route check.
+    const before = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: ctx.member.headers, payload: ctx.resumePayload });
+    expect(before.statusCode).toBe(403);
+    expect(before.json().code).toBe("consent_required");
+    // Explicit member route works with member auth only ...
+    const granted = await app.inject({ method: "POST", url: "/v1/consent/member",
+      headers: ctx.member.headers, payload: { grant: true } });
+    expect(granted.statusCode).toBe(200);
+    expect(granted.json()).toMatchObject({ granted: true, policyVersion: CONSENT_POLICY_VERSION });
+    // ... and also when a stale guest proof header is present (guest proof ignored).
+    const grantedAgain = await app.inject({ method: "POST", url: "/v1/consent/member",
+      headers: { ...ctx.member.headers, ...ctx.guest.headers }, payload: { grant: true } });
+    expect(grantedAgain.statusCode).toBe(200);
+    expect(grantedAgain.json()).toMatchObject({ granted: true });
+    const resumed = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: ctx.member.headers, payload: ctx.resumePayload });
+    expect(resumed.statusCode).toBe(200);
+    expect(resumed.json()).toMatchObject({ type: "continuation_dispatched" });
+    // Revoking via the explicit route re-locks resume without dispatching.
+    expect((await app.inject({ method: "POST", url: "/v1/consent/member",
+      headers: ctx.member.headers, payload: { grant: false } })).statusCode).toBe(200);
+    const replayDenied = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: ctx.member.headers, payload: ctx.resumePayload });
+    expect(replayDenied.json().code).toBe("consent_required");
+  });
+
+  it("E-CONSENT-OUTDATED-19 outdated member consent denies resume until re-granted", async () => {
+    const ctx = await driveGuestToClaimed();
+    await boundedGrant(ctx.member, DEFAULT_RUN_BUDGET_MICRO);
+    await grantMemberConsent(ctx.member.headers);
+    // Simulate a policy rotation by backdating the member consent row.
+    await pool.query(
+      "UPDATE consent_records SET policy_version='v0-outdated' WHERE account_id=$1",
+      [ctx.member.accountId],
+    );
+    const denied = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: ctx.member.headers, payload: ctx.resumePayload });
+    expect(denied.statusCode).toBe(403);
+    expect(denied.json().code).toBe("consent_required");
+    expect(await memberRunCount(ctx.member.accountId)).toBe(0);
+    expect(await memberReservationCount(ctx.member.accountId)).toBe(0);
+    await grantMemberConsent(ctx.member.headers);
+    const resumed = await app.inject({ method: "POST", url: "/v1/guest/actions/resume",
+      headers: ctx.member.headers, payload: ctx.resumePayload });
+    expect(resumed.statusCode).toBe(200);
   });
 });

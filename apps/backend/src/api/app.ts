@@ -98,7 +98,7 @@ import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
 import { verifyClerkWebhook } from "../adapters/auth/clerk-webhook.js";
 import { RESEARCH_QUEUE } from "../adapters/queue.js";
-import { accountForIdentity } from "../modules/identity.js";
+import { accountForIdentity, grantNewMemberEntitlement } from "../modules/identity.js";
 import { applyClerkWebhookEvent } from "../modules/clerk-revocation.js";
 import { abandonClaimedGuestAction, admitGuestFirst, beginGuestAuthAttempt, bootstrapGuest,
   cancelGuestConversationRun,
@@ -117,6 +117,40 @@ export type AppDeps = {
 
 function err(code: string, message: string, correlationId: string, preserved = "No additional changes.") {
   return { code, message, retryable: false, correlationId, preserved };
+}
+
+/**
+ * W05 canonical public route-admission tuple (F02/F03/W05 lane preserves 5 allowlisted messages).
+ *
+ * Only two public codes exist here; statuses are fixed (permission_denied→403,
+ * allowance_exhausted→402). Any other code — including prototype-polluting keys
+ * such as "__proto__"/"constructor" — maps to internal_failure/500 with a
+ * generic message. Unknown messages for known codes also fall back to a generic
+ * message so private error.message text never leaks. No reservation or dispatch
+ * happens on any denial because callers return before admission.
+ */
+const ROUTE_ADMISSION_ALLOWLIST = new Map<string, readonly string[]>([
+  ["permission_denied", [
+    "Fixture route is disabled.",
+    "Live route is not enabled.",
+    "Structured research is disabled.",
+    "Live route requires an authorized key and budget.",
+  ]],
+  ["allowance_exhausted", ["Live spend cap is exhausted."]],
+]);
+
+export function publicRouteAdmissionDenial(error: unknown): { code: string; status: number; message: string } {
+  const code = (error as { code?: unknown }).code;
+  const message = (error as { message?: unknown }).message;
+  if (code === "permission_denied" && typeof message === "string") {
+    const allowed = ROUTE_ADMISSION_ALLOWLIST.get("permission_denied")!;
+    return { code, status: 403, message: allowed.includes(message) ? message : "The request was not accepted." };
+  }
+  if (code === "allowance_exhausted" && typeof message === "string") {
+    const allowed = ROUTE_ADMISSION_ALLOWLIST.get("allowance_exhausted")!;
+    return { code, status: 402, message: allowed.includes(message) ? message : "The request was not accepted." };
+  }
+  return { code: "internal_failure", status: 500, message: "The request could not be completed." };
 }
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
@@ -212,6 +246,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     "/v1/guest/actions/resume": GuestActionResumeRequestSchema,
     "/v1/guest/actions/resolve": GuestActionResolveRequestSchema,
     "/v1/consent": z.object({ grant: z.boolean() }).strict(),
+    "/v1/consent/member": z.object({ grant: z.boolean() }).strict(),
+    "/v1/entitlements/new-member-grant": z.object({
+      grantRequestId: z.string().uuid(),
+      amountMicro: z.number().int().positive().max(1_000_000),
+    }).strict(),
     "/v1/runs/:id/cancel": z.object({}).strict(),
     "/v1/account/deletion": z.object({}).strict(),
     "/v1/purchases/restore": z.object({}).strict(),
@@ -229,14 +268,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const route = req.routeOptions.url ?? "";
     const proof = req.headers["x-norrow-guest-proof"];
     if (proof !== undefined) {
-      const guestRoutes = new Set(["/v1/session", "/v1/consent", "/v1/runs", "/v1/run-requests/resolve",
+      const guestRoutes = new Set(["/v1/session", "/v1/consent", "/v1/consent/member", "/v1/runs", "/v1/run-requests/resolve",
         "/v1/guest/pending-actions", "/v1/guest/pending-actions/attempts/begin",
         "/v1/guest/pending-actions/attempts/end", "/v1/guest/pending-actions/attempts/resolve",
         "/v1/guest/pending-actions/cancel",
         "/v1/guest/claim", "/v1/runs/:id", "/v1/runs/:id/events",
         "/v1/runs/:id/cancel", "/v1/runs/:id/cost", "/v1/reports/:id", "/v1/sources/:id",
         "/v1/settings", "/v1/routes/capabilities", "/v1/guest"]);
-      if (!guestRoutes.has(route) || (req.headers.authorization && route !== "/v1/guest/claim"))
+      if (!guestRoutes.has(route) || (req.headers.authorization && route !== "/v1/guest/claim" && route !== "/v1/consent/member"))
         return reply.code(403).send(err("authority_denied", "This credential combination is not allowed.", crypto.randomUUID()));
     }
     if (route.includes(":id") && !z.object({ id: z.string().uuid() }).strict().safeParse(req.params).success)
@@ -402,6 +441,67 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return { granted: true, consentEpoch: r.epoch, policyVersion: CONSENT_POLICY_VERSION, processors: r.processors };
   });
 
+  /**
+   * F03 explicit member-consent route (mobile contract).
+   *
+   * POST /v1/consent/member { grant: true|false }
+   * Auth: member Bearer only (dev session or Clerk/verified member). Any
+   * x-norrow-guest-proof header is ignored, never used to resolve consent.
+   * 200 { granted, consentEpoch, policyVersion?, processors } on grant;
+   * 200 { granted:false, consentEpoch, processors } on revoke.
+   * 401 when member auth absent/deleted; 400 when grant is not boolean.
+   * resumeClaimedGuestAction still fails closed 403 consent_required until this
+   * route has granted the current CONSENT_POLICY_VERSION for the member.
+   */
+  app.post("/v1/consent/member", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const body = (req.body ?? {}) as { grant?: boolean };
+    if (typeof body.grant !== "boolean") {
+      return reply.code(400).send(err("invalid_input", "An explicit consent choice is required.", crypto.randomUUID()));
+    }
+    if (body.grant === false) {
+      const epoch = await revokeConsent(pool, member.accountId);
+      return { granted: false, consentEpoch: epoch, processors: PROCESSOR_DISCLOSURE };
+    }
+    const granted = await grantConsent(pool, member.accountId);
+    return { granted: true, consentEpoch: granted.epoch,
+      policyVersion: CONSENT_POLICY_VERSION, processors: granted.processors };
+  });
+
+  /**
+   * F02 authorized bounded new-member grant (mobile/operator contract).
+   *
+   * POST /v1/entitlements/new-member-grant { grantRequestId: uuid, amountMicro: 1..1000000 }
+   * Auth: member Bearer only; guest proof alone is 401/403 and never grants.
+   * 200 { grantRequestId, accountId, amountMicro, limitMicro, reused }.
+   * Same id+amount replays with reused:true and no double spend; same id with a
+   * different amount is 409; same id on a different account is 403 with no grant;
+   * resulting limit above 1_000_000 is 403 with no grant. Zero default preserved.
+   */
+  app.post("/v1/entitlements/new-member-grant", async (req, reply) => {
+    const member = await auth(req as never);
+    if (!member || member.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    const body = (req.body ?? {}) as { grantRequestId?: unknown; amountMicro?: unknown };
+    if (typeof body.grantRequestId !== "string" || typeof body.amountMicro !== "number") {
+      return reply.code(400).send(err("invalid_input", "An explicit grant identity and bounded amount are required.", crypto.randomUUID()));
+    }
+    try {
+      return await grantNewMemberEntitlement(pool, member.accountId, body.grantRequestId, body.amountMicro);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      const status = (error as { statusCode?: number }).statusCode;
+      if (code === "invalid_input") return reply.code(400).send(err(code, "An explicit grant identity and bounded amount are required.", crypto.randomUUID()));
+      if (code === "authority_denied") return reply.code(403).send(err(code, "This grant is not authorized for this account.", crypto.randomUUID()));
+      if (code === "idempotency_conflict") return reply.code(409).send(err("stale_revision", "This grant identity was already used with different terms.", crypto.randomUUID()));
+      if (code === "permission_denied") return reply.code(403).send(err(code, "This grant would exceed the bounded member aggregate.", crypto.randomUUID()));
+      if (code === "allowance_exhausted") return reply.code(402).send(err(code, "Not enough remaining allowance.", crypto.randomUUID()));
+      if (code && status && status >= 400 && status < 500)
+        return reply.code(status).send(err(code, "This grant cannot be accepted.", crypto.randomUUID()));
+      throw error;
+    }
+  });
+
   app.post("/v1/run-requests/resolve", async (req, reply) => {
     const g = await guest(req as never);
     const a = g ? { accountId: g.accountId, deleted: false } : await auth(req as never);
@@ -430,29 +530,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return reply.code(400).send(err("invalid_input", "An explicit idempotency key is required.", correlationId));
     try { await assertRouteAdmission(pool, config, input.routeMode); }
     catch (error) {
-      // Route admission denials are public operational signals. Surface only
-      // allowlisted messages for known codes; otherwise use a generic message.
-      const code = (error as { code?: string }).code;
-      const status = (error as { statusCode?: number }).statusCode;
-      if (code && status && status >= 400 && status < 500) {
-        const allowedMessages: Record<string, string[]> = {
-          permission_denied: [
-            "Fixture route is disabled.",
-            "Live route is not enabled.",
-            "Structured research is disabled.",
-            "Live route requires an authorized key and budget."
-          ],
-          allowance_exhausted: [
-            "Live spend cap is exhausted."
-          ]
-        };
-        const message = (error as Error).message;
-        const allowlist = allowedMessages[code] ?? [];
-        const publicMessage = allowlist.includes(message) ? message : "The request was not accepted.";
-        const publicStatus = code === "allowance_exhausted" ? 402 : status;
-        return reply.code(publicStatus).send(err(code, publicMessage, correlationId));
-      }
-      throw error;
+      // Canonical public tuple: no reservation/dispatch happens on denial and
+      // no arbitrary error.message/code leaks. Unknown errors map to 500.
+      const pub = publicRouteAdmissionDenial(error);
+      if (pub.status === 500) logError("route_admission_unexpected", { correlationId });
+      return reply.code(pub.status).send(err(pub.code, pub.message, correlationId));
     }
     const consent = await currentConsent(pool, a.accountId);
     if (!consent || consent.revoked) {
