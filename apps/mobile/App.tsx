@@ -501,6 +501,7 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   async function saveGuestReader(next: UiState) {
     const { context } = currentGuest();
     const draftAtEntry = latestUi.current.draft;
+    const consentAtEntry = latestUi.current.consentGranted;
     await guestDevice.saveSnapshot(context.guestContextId, next, guestDraftRevision.current);
     // Whole-update boundary: text typed during the durable write survives.
     // An unchanged reader publishes the accepted frame as-is; a newer draft
@@ -508,10 +509,16 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     // that landed meanwhile fail closed: the stale frame is never published.
     if (guestContextRef.current?.guestContextId !== context.guestContextId || memberTokenRef.current) return;
     const latest = latestUi.current;
-    // Consent follows the same boundary: a grant or revocation that landed
-    // during the write wins over the accepted frame; the frame never
-    // resurrects a stale flag in either direction.
-    const merged = { ...next, draft: latest.draft !== draftAtEntry ? latest.draft : next.draft, consentGranted: latest.consentGranted };
+    // Consent follows the same boundary as the draft: a grant or revocation
+    // that landed during the write (the ref changed) wins over the accepted
+    // frame; an unchanged ref must not resurrect its stale pre-write flag
+    // over a newer `next` the caller already confirmed (e.g. a grant whose
+    // API call succeeded after the ref was read).
+    const merged = {
+      ...next,
+      draft: latest.draft !== draftAtEntry ? latest.draft : next.draft,
+      consentGranted: latest.consentGranted !== consentAtEntry ? latest.consentGranted : next.consentGranted,
+    };
     latestUi.current = merged;
     setStateRaw(merged);
   }
@@ -627,7 +634,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       const server = await api.guest.sessionInfo(proof);
       let context = readGuestContext({ ...savedContext, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
       await guestDevice.updateContext(context); guestContextRef.current = context; setGuestContext(context);
-      if (!context.consentGranted && latestUi.current.consentGranted) await saveGuestReader({ ...latestUi.current, consentGranted: false, error: "AI processing consent was revoked. Your draft and report remain saved." });
+      if (!context.consentGranted && latestUi.current.consentGranted) {
+        const revoked = { ...latestUi.current, consentGranted: false, error: "AI processing consent was revoked. Your draft and report remain saved." };
+        // Mirror the confirmed server revocation into the latest reader before
+        // the durable write so no reader/continuation publishes consent that
+        // the server no longer holds. A concurrent re-grant still wins.
+        latestUi.current = revoked;
+        await saveGuestReader(revoked);
+      }
       if (context.acceptedTurnCount !== 1 || !context.consentGranted || latestUi.current.pendingContentInvalidation || latestUi.current.pendingSourceDeletion) throw new Error("This guest conversation is not ready for another message. Check consent and retry.");
       if (latestUi.current.offline) throw new Error("Offline. Your message stays saved on this device.");
       if (payload.text.length > 4000 || !payload.text.trim()) throw new Error("Enter a message of at most 4,000 characters.");
@@ -1359,6 +1373,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         const updated = readGuestContext({ ...context, consentGranted: true });
         await guestDevice.updateContext(updated); guestContextRef.current = updated; setGuestContext(updated);
         const next = { ...latestUi.current, consentGranted: true, tab: "research" as const, error: null, routeMode: "controlled-research" as const };
+        // Mirror the confirmed grant into the latest reader before the durable
+        // write, exactly like the member branch: a concurrent reader or a
+        // continuation in this same stack must never publish the stale
+        // pre-grant flag. A later revocation still wins via the boundary.
+        latestUi.current = next;
         await saveGuestReader(next);
         return;
       }
