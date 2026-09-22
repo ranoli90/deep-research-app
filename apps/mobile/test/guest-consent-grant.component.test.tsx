@@ -77,6 +77,26 @@ function stubFetch(calls: Call[], routes: (method: string, path: string, body: a
   }));
 }
 
+// Delayed real storage: the next saveSnapshot waits on the gate while every
+// other device operation passes through untouched. This lets the test force a
+// React re-render (with the still-stale committed state) mid-write.
+function armDelayedWrite(mode: { once: boolean }) {
+  let release!: () => void;
+  let gate = new Promise<void>((resolve) => { release = resolve; });
+  let waiting = 0;
+  const real = held.device.saveSnapshot.bind(held.device);
+  held.device.saveSnapshot = async (...args: unknown[]) => {
+    if (mode.once) {
+      mode.once = false;
+      waiting++;
+      await gate;
+      waiting--;
+    }
+    return real(...args);
+  };
+  return { waits: () => waiting, release: () => { const r = release; gate = Promise.resolve(); r(); } };
+}
+
 beforeEach(async () => {
   held.id = 700;
   vi.useFakeTimers();
@@ -125,9 +145,21 @@ it("CONSENT-GUEST-01 granted guest consent survives the durable reader write and
   await act(async () => { headerOf(renderer).props.onSettings(); });
   expect(panelOf(renderer).props.state.consentGranted).toBe(false);
 
-  // The real persisted-store grant path: the server confirms the grant, then
-  // the reader write must not resurrect the stale pre-grant flag.
-  await act(async () => { await panelOf(renderer).props.onConsent(); });
+  // The real persisted-store grant path plus the exact render-flush timing the
+  // previous jsdom regression missed: the durable write is held open, then an
+  // unrelated React render flushes with the still-stale committed state
+  // (consentGranted:false), which line 145 re-syncs into the latest-reader
+  // ref. The server-confirmed grant must survive that echo.
+  const delayed = armDelayedWrite({ once: true });
+  const consent = panelOf(renderer).props.onConsent();
+  await vi.waitFor(() => expect(delayed.waits()).toBe(1));
+  // Force a React re-render mid-await: the settings re-entry lands while the
+  // grant's saveSnapshot is still in flight and re-syncs the latest-reader
+  // ref from the still-stale committed state.
+  await act(async () => { headerOf(renderer).props.onSettings(); });
+  expect(delayed.waits()).toBe(1);
+  await act(async () => { delayed.release(); });
+  await act(async () => { await consent; });
   expect(calls.filter((c) => c.method === "POST" && c.path === "/v1/consent")).toHaveLength(1);
   // The granted frame, not a resurrected stale one, is what remains durable.
   await vi.waitFor(async () => expect((await held.device.load()).state.consentGranted).toBe(true));

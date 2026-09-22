@@ -91,9 +91,11 @@ import {
   startNewResearch,
   expireLocalSession,
   logout as logoutState,
+  mergeConsent,
   mergeEvents,
   openLibraryItem,
   submitPrerequisite,
+  withConsent,
   type ReportBlock,
   type UiState,
 } from "./src/state";
@@ -142,7 +144,14 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   const composerInput = useRef<TextInput>(null);
   const guestRefreshing = useRef(false);
   const guestRunEpoch = useRef(0);
-  const latestUi = useRef(state); latestUi.current = state;
+  const latestUi = useRef(state);
+  // Every committed render field follows the newest render so draft/tab edits
+  // are never lost. Consent is versioned: a render echo of a pre-decision
+  // frame carries the same (lower) revision and must never roll the ref below
+  // a confirmed consent decision, so an echo can never resurrect consent.
+  latestUi.current = state.consentRevision >= latestUi.current.consentRevision
+    ? state
+    : { ...state, consentGranted: latestUi.current.consentGranted, consentRevision: latestUi.current.consentRevision };
   const mutationJournalWrite = useRef<Promise<void>>(Promise.resolve());
   const redactingContent = useRef(false);
   const setState = useCallback((update: UiState | ((previous: UiState) => UiState)) => {
@@ -501,7 +510,6 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
   async function saveGuestReader(next: UiState) {
     const { context } = currentGuest();
     const draftAtEntry = latestUi.current.draft;
-    const consentAtEntry = latestUi.current.consentGranted;
     await guestDevice.saveSnapshot(context.guestContextId, next, guestDraftRevision.current);
     // Whole-update boundary: text typed during the durable write survives.
     // An unchanged reader publishes the accepted frame as-is; a newer draft
@@ -509,15 +517,13 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     // that landed meanwhile fail closed: the stale frame is never published.
     if (guestContextRef.current?.guestContextId !== context.guestContextId || memberTokenRef.current) return;
     const latest = latestUi.current;
-    // Consent follows the same boundary as the draft: a grant or revocation
-    // that landed during the write (the ref changed) wins over the accepted
-    // frame; an unchanged ref must not resurrect its stale pre-write flag
-    // over a newer `next` the caller already confirmed (e.g. a grant whose
-    // API call succeeded after the ref was read).
+    // Consent follows a version boundary, not a value comparison: a render
+    // echo of the pre-grant frame carries the same (lower) revision and can
+    // never regress a confirmed grant. A higher-revision revocation still wins.
     const merged = {
       ...next,
       draft: latest.draft !== draftAtEntry ? latest.draft : next.draft,
-      consentGranted: latest.consentGranted !== consentAtEntry ? latest.consentGranted : next.consentGranted,
+      ...mergeConsent(next, latest),
     };
     latestUi.current = merged;
     setStateRaw(merged);
@@ -635,10 +641,11 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       let context = readGuestContext({ ...savedContext, controlVersion: server.controlVersion, acceptedTurnCount: server.acceptedTurnCount, consentGranted: server.consentGranted, conversationVersion: server.conversationVersion });
       await guestDevice.updateContext(context); guestContextRef.current = context; setGuestContext(context);
       if (!context.consentGranted && latestUi.current.consentGranted) {
-        const revoked = { ...latestUi.current, consentGranted: false, error: "AI processing consent was revoked. Your draft and report remain saved." };
-        // Mirror the confirmed server revocation into the latest reader before
-        // the durable write so no reader/continuation publishes consent that
-        // the server no longer holds. A concurrent re-grant still wins.
+        const revoked = { ...withConsent(latestUi.current, false), error: "AI processing consent was revoked. Your draft and report remain saved." };
+        // Mirror the confirmed server revocation (higher revision) into the
+        // latest reader before the durable write so no reader/continuation
+        // publishes consent that the server no longer holds. A concurrent
+        // re-grant carries an even higher revision and still wins.
         latestUi.current = revoked;
         await saveGuestReader(revoked);
       }
@@ -731,8 +738,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     memberTokenRef.current = memberToken; memberAccountRef.current = identity.accountId;
     activeClerkSubjectRef.current = authRef.current?.subject ?? null;
     setToken(memberToken); setAccountId(identity.accountId);
-    // Guest consent is never a member consent grant.
-    setStateRaw(s => ({ ...s, signedIn: true, consentGranted: false, error: null }));
+    // Guest consent is never a member consent grant: this is a distinct
+    // revocation decision, so it advances the consent revision and a stale
+    // guest grant echo can never resurrect itself in the member reader.
+    setStateRaw(s => ({ ...withConsent(s, false), signedIn: true, error: null }));
     await claimAndResumeGuest(completed, memberToken, identity.accountId);
   }
 
@@ -856,10 +865,10 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
     // pre-write draft, not the accepted frame. An unchanged reader publishes
     // the accepted frame (only an unchanged send clears the draft); an edit
     // that landed during the final member write merges into it. Consent
-    // follows the same boundary: a grant or revocation that landed during
-    // the write wins over the accepted frame in either direction.
+    // follows the version boundary: the higher confirmed revision wins, so a
+    // render echo of a pre-decision frame can never resurrect stale consent.
     const latest = latestUi.current;
-    const merged = { ...next, draft: latest.draft !== previous.draft ? latest.draft : next.draft, consentGranted: latest.consentGranted };
+    const merged = { ...next, draft: latest.draft !== previous.draft ? latest.draft : next.draft, ...mergeConsent(next, latest) };
     latestUi.current = merged; setStateRaw(merged);
     setGuestSheetVisible(false);
     startPolling(credential(), result.runId); void refreshRun(credential(), result.runId, next);
@@ -1372,11 +1381,12 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
         if (result.granted !== true || result.policyVersion !== context.consentPolicyVersion) throw new Error("Current guest consent could not be confirmed.");
         const updated = readGuestContext({ ...context, consentGranted: true });
         await guestDevice.updateContext(updated); guestContextRef.current = updated; setGuestContext(updated);
-        const next = { ...latestUi.current, consentGranted: true, tab: "research" as const, error: null, routeMode: "controlled-research" as const };
-        // Mirror the confirmed grant into the latest reader before the durable
-        // write, exactly like the member branch: a concurrent reader or a
-        // continuation in this same stack must never publish the stale
-        // pre-grant flag. A later revocation still wins via the boundary.
+        const next = { ...withConsent(latestUi.current, true), tab: "research" as const, error: null, routeMode: "controlled-research" as const };
+        // Mirror the confirmed grant (higher revision) into the latest reader
+        // before the durable write, exactly like the member branch: a render
+        // echo of the stale pre-grant frame carries the same lower revision
+        // and can never regress it. A later revocation advances the revision
+        // again and still wins via the version boundary.
         latestUi.current = next;
         await saveGuestReader(next);
         return;
@@ -1386,17 +1396,15 @@ export function AppInner({ auth }: { auth: ClerkGuestAuth | null }) {
       // attached. Fail closed when the server does not confirm the grant.
       const consentResult = await api.consent(t, true);
       if (consentResult?.granted !== true) throw new Error("Current member consent could not be confirmed.");
-      // The server confirmed the grant. Mirror it into the latest reader
-      // immediately (same value the queued render carries) so a continuation
-      // adopted in this same call stack cannot publish a stale pre-grant
-      // flag. A revocation that lands later still wins via the render queue
-      // and the whole-update boundary at adoption.
-      latestUi.current = { ...latestUi.current, consentGranted: true };
-      setState((s) => {
-        const next = { ...s, consentGranted: true, error: null };
-
-        return next;
-      });
+      // The server confirmed the grant. Advance the monotonic consent revision
+      // and mirror it into both the latest reader and the queued render, so a
+      // render echo of the stale pre-grant frame (same lower revision) cannot
+      // regress it and a continuation adopted in this same call stack cannot
+      // publish a stale pre-grant flag. A revocation that lands later advances
+      // the revision again and still wins at the version boundary.
+      const granted = withConsent(latestUi.current, true);
+      latestUi.current = granted;
+      setState((s) => ({ ...s, consentGranted: true, error: null, consentRevision: Math.max(s.consentRevision, granted.consentRevision) }));
       // Funded continuation of an exact retained claim after explicit member
       // consent. The bounded new-member grant is keyed by the claim identity,
       // so a retry replays the same grantRequestId (server answers reused)

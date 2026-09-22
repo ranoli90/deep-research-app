@@ -8,7 +8,7 @@ import { sha256Hex } from "../src/sha256";
 import { preparePendingFollowUp, submitPendingFollowUp, unresolvedFollowUp, withFollowUpPhase } from "../src/follow-up-admission";
 import { createSessionStorage, memoryStore } from "../src/persist";
 import { createRequestScope, SupersededRequest } from "../src/request-scope";
-import { emptyState, type UiState } from "../src/state";
+import { emptyState, mergeConsent, type UiState } from "../src/state";
 
 describe("constraint delta and mutating follow-up identity", () => {
   it("does not concatenate the original question for a budget change", () => {
@@ -61,6 +61,34 @@ describe("constraint delta and mutating follow-up identity", () => {
     expect(app).toMatch(/onExplainFollowUp[\s\S]*?!current\.consentGranted[\s\S]*?followUpBusy\.current = true/);
     expect(app).toMatch(/onRevoke=[\s\S]*?credential = memberAuthority\(\)[\s\S]*?api\.capture\(credential\(\)\)[\s\S]*?revokeConsentWithinAccount\(\{[\s\S]*?invalidateView: \(\) => api\.invalidateView\(credential\(\)\)[\s\S]*?waitForJournal: \(\) => mutationJournalWrite\.current[\s\S]*?persist: \(revoked\) => sessionStorage\.persistRequired\(credential\(\), revoked\)[\s\S]*?revokeRemote: \(\) => api\.consent\(credential\(\), false\)[\s\S]*?accountGuard\.current\(\)/);
     expect(app).not.toMatch(/onRevoke=[\s\S]{0,160}if \(correctionAttempt\.current\) api\.invalidateView/);
+  });
+
+  it("advances the consent revision on revocation so a stale grant echo cannot resurrect consent", async () => {
+    const token = "token-a", accountId = "account-a";
+    const cache = memoryStore(), credentials = memoryStore();
+    const storage = createSessionStorage(cache, credentials);
+    await storage.activate({ token, accountId });
+    const scope = createRequestScope(); scope.setSession(token);
+    const account = scope.capture("account", token);
+    const latest = { current: { ...emptyState(), signedIn: true, consentGranted: true, consentRevision: 3, draft: "X" } as UiState };
+    const staleGrantEcho = { ...latest.current };
+    await revokeConsentWithinAccount({
+      account,
+      currentState: () => latest.current,
+      invalidateView: () => scope.invalidateView(token),
+      waitForJournal: async () => undefined,
+      persist: (next) => storage.persistRequired(token, next),
+      revokeRemote: async () => undefined,
+      synchronize: (next) => { latest.current = next; },
+      render: () => undefined,
+      failureMessage: "Could not confirm consent revocation. Retry.",
+    });
+    expect(latest.current.consentGranted).toBe(false);
+    expect(latest.current.consentRevision).toBeGreaterThan(3);
+    // A render echo of the pre-revocation granted frame carries the lower
+    // revision and can never win the whole-update consent boundary.
+    expect(mergeConsent(staleGrantEcho, latest.current).consentGranted).toBe(false);
+    account.release();
   });
 
   it("keeps the durable accepted journal in the authoritative state before a deferred render and child snapshot", async () => {

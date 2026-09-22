@@ -24,8 +24,8 @@ const SNAPSHOT_KEY = "deep.ui.v2", INSTALL_KEY = "deep.install.v2";
 const legacyKeys = ["deep.token", "deep.ui", "deep.draft"];
 
 export function storedState(state: UiState) {
-  const { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains } = state;
-  return { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, status, followUpExplains };
+  const { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, consentRevision, status, followUpExplains } = state;
+  return { conversationId, draft, correctionDraft, pendingSourceDeletion, pendingVerification, pendingFollowUp, pendingAssumptions, pendingCorrection, run, report, previousReport, readingAnchor, routeMode, consentGranted, consentRevision, status, followUpExplains };
 }
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function strings(value: unknown): value is string[] { return Array.isArray(value) && value.every((s) => typeof s === "string"); }
@@ -53,6 +53,9 @@ export function parseState(raw: string | null, accountId: string): UiState | nul
     return {
       ...emptyState(),
       ...storedState(s as unknown as UiState),
+      consentRevision: typeof s.consentRevision === "number" && Number.isSafeInteger(s.consentRevision) && s.consentRevision >= 0
+        ? s.consentRevision
+        : s.consentGranted === true ? 1 : 0,
       correctionDraft: parseCorrectionDraft(s.correctionDraft),
       followUpExplains: readFollowUpExplains(s.followUpExplains ?? s.followUpExplain),
       pendingFollowUp: s.pendingFollowUp == null ? null : readPendingFollowUp(s.pendingFollowUp),
