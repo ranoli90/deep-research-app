@@ -367,7 +367,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       return unresolved("readable_evidence_unavailable");
     }
     const selection=selectionEnabled?await session.write(db=>prepareEvidenceSelection(db,{...args,requiredIds:recoveryRequiredIds})):null;
-    if(selection&&selection.kind!=="selected")return unresolved(selection.reason);
+    if(selection&&selection.kind!=="selected"){
+      if(prior)return writeFromPrior(selection.reason);
+      return unresolved(selection.reason);
+    }
     const extraction=await extractEvidenceAssertions(pool,config,session,{...args,taskId:prepared.task.id,passageIds:selection?selection.passageIds:selected.rows.map(p=>p.id),selectionId:selection?.context.id});
     if(extraction.kind!=="extraction"){
       if(prior)return writeFromPrior(extraction.kind==="blocked"?extraction.reason:"extraction_unavailable");
@@ -437,7 +440,10 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
     if(extraction.output.assertions.length>=2) {
       const comparison=await executeScopeComparison(session,{...target,supportIntentId:support.intentId,
         action:{type:"compare_scopes",claimKeys:extraction.output.assertions.map(a=>a.key)}});
-      if(comparison.kind!=="comparison")return unresolved(comparison.reason);
+      if(comparison.kind!=="comparison"){
+        if(prior)return writeFromPrior(comparison.reason);
+        return unresolved(comparison.reason);
+      }
     }
     const calculations=await executeCalculationPlanning(pool,config,session,{...target,supportIntentId:support.intentId});
     if(calculations.kind!=="calculations"&&calculations.kind!=="not_applicable"){

@@ -96,6 +96,41 @@ async function seedExhaustedPasses(runId: string, accountId: string) {
   }
 }
 
+/** One assertion per selected passage so scope comparison is attempted. */
+function multiAssertionTransport(searches: string[]) {
+  return vi.fn(async (_input: unknown, init?: RequestInit) => {
+    const body = JSON.parse(String(init?.body));
+    if (body.plugins?.length) {
+      const url = `https://example.org/battery-${searches.length + 1}`;
+      searches.push(url);
+      return searchReply(url);
+    }
+    const context = JSON.parse(body.messages[1].content), operation = body.response_format.json_schema.name;
+    if (operation === "research_brief_v1") return response(brief);
+    if (operation === "research_extract_assertions_v1") return response({ candidates: [],
+      assertions: context.passages.map((p: { id: string; text: string }, i: number) => ({ key: `a${i}`, candidateKey: null, criterionKeys: ["c1"],
+        text: p.text, scope, quantities: [], evidence: [{ passageId: p.id, start: 0, end: p.text.length, quote: p.text }] })), limitations: [] });
+    if (operation === "research_assess_support_v1") return response({ assessments: context.assertions.map((a: { key: string; scope: unknown; evidence: unknown }) =>
+      ({ claimKey: a.key, status: "supported", scope: a.scope, evidence: a.evidence, rationale: "Fabricated deterministic control", missingEvidence: [] })) });
+    if (operation === "research_review_coverage_v1") return response({ questions: [{ questionKey: "q1", status: "unresolved_at_limit",
+      assertionKeys: context.approvedClaimKeys, reason: "More battery evidence remains unresolved" }], omittedRequirements: [] });
+    if (operation === "research_write_report_v1") return response({ title: "Battery answer", sections: [{ heading: "Answer",
+      paragraphs: context.assertions.filter((a: { key: string }) => context.approvedClaimKeys.includes(a.key)).map((a: { key: string; text: string }) =>
+        ({ text: a.text, claimKeys: [a.key] })) }], unresolvedQuestionKeys: ["q1"], limitations: [] });
+    throw new Error(`unexpected operation:${operation}`);
+  }) as typeof fetch;
+}
+
+/** A prior writer intent with no confirmed cost and no stored result, as after an interrupted paid call. */
+async function seedUnknownWriter(runId: string) {
+  const actionId = crypto.randomUUID();
+  await pool.query(`INSERT INTO run_actions(id,run_id,brief_revision,logical_key,kind,request_digest)
+    VALUES($1,$2,1,$3,'write_report','seed-unknown-writer-digest')`, [actionId, runId, `seed-write-${actionId}`]);
+  await pool.query(`INSERT INTO provider_intents(id,run_id,correlation_id,route,request_digest,reserved_max_micro,state,confirmed_micro,action_id)
+    VALUES($1,$2,$3,'openrouter:openai/gpt-4o-mini:write_report','seed-unknown-writer-digest',1,'issued',NULL,$4)`,
+    [crypto.randomUUID(), runId, crypto.randomUUID(), actionId]);
+}
+
 describe("R14 final exploration pass must not abandon checked evidence", () => {
   it("publishes a limited report from supported evidence instead of failing when the iteration budget is spent", async () => {
     const x = await setup();
@@ -123,6 +158,44 @@ describe("R14 final exploration pass must not abandon checked evidence", () => {
       expect(report!.limitations.join(" ")).toMatch(/c1/);
       // Reserving a finishing step means no further public exploration is issued on the final permitted pass.
       expect(searches, "the final permitted pass must not start a new discovery search").toHaveLength(0);
+    } finally {
+      await deleteAccount(pool, x.accountId);
+    }
+  }, 60_000);
+
+  it("finishes from supported prior when scope comparison is blocked by an unreconciled writer", async () => {
+    const x = await setup();
+    try {
+      const secondSource = await insertSource(pool, { accountId: x.accountId, runId: x.runId,
+        locator: "https://example.org/acme-review", title: "Acme Model Z review", publisher: "Review", originCluster: "review" });
+      const secondText = `Independent test found the Acme Model Z battery lasts ${crypto.randomUUID().slice(0, 8)} hours.`;
+      await insertVersionAndPassage(pool, { accountId: x.accountId, runId: x.runId, sourceId: secondSource,
+        locator: "https://example.org/acme-review", text: secondText, accessLevel: "partial-text" });
+      await seedUnknownWriter(x.runId);
+
+      const searches: string[] = [];
+      globalThis.fetch = multiAssertionTransport(searches);
+      vi.spyOn(sourceReader, "readSource").mockImplementation(async (locator) => readControl(locator, x.evidenceText));
+
+      await processRun(pool, x.config, x.runId);
+
+      const run = (await getRun(pool, x.runId))!;
+      const unresolvedReasons = (await pool.query<{ payload: { reason?: string } }>(
+        "SELECT payload FROM run_events WHERE run_id=$1 AND type='research_unresolved'", [x.runId])).rows.map((e) => e.payload.reason);
+      expect(unresolvedReasons, "a blocked comparison must not discard checked evidence").not.toContain("comparison_upgrade_requires_reconciled_writer");
+      const pivots = (await pool.query<{ payload: { reason?: string } }>(
+        "SELECT payload FROM run_events WHERE run_id=$1 AND type='plan_pivot'", [x.runId])).rows.map((e) => e.payload.reason);
+      expect(pivots, "the prior-supported writer fallback must run").toContain("comparison_upgrade_requires_reconciled_writer");
+      expect(run.terminal_outcome, "a supported limited report must be published").toBe("completed_with_limitations");
+      const report = (await pool.query<{ blocks: { text: string }[] }>("SELECT blocks FROM reports WHERE run_id=$1", [x.runId])).rows[0];
+      expect(report).toBeDefined();
+      expect(report!.blocks.some((b) => b.text === x.evidenceText)).toBe(true);
+      // The unreconciled paid writer call is held, not retried under its identity.
+      const held = (await pool.query<{ confirmed_micro: string | null; n: string }>(
+        `SELECT max(confirmed_micro)::text AS confirmed_micro, count(*)::text AS n FROM provider_intents
+          WHERE run_id=$1 AND request_digest='seed-unknown-writer-digest'`, [x.runId])).rows[0]!;
+      expect(held.confirmed_micro).toBeNull();
+      expect(Number(held.n)).toBe(1);
     } finally {
       await deleteAccount(pool, x.accountId);
     }
