@@ -8,6 +8,7 @@ import { createQueue } from "../src/adapters/queue.js";
 import { loadConfig, type AppConfig } from "../src/platform/config.js";
 import { createPool, migrate } from "../src/platform/db.js";
 import { emitEvent } from "../src/modules/runs.js";
+import { sourceReadPublicPayload } from "../src/modules/source-read-public.js";
 
 const TEST_URL =
   process.env.TEST_DATABASE_URL ??
@@ -124,5 +125,48 @@ describe("GET /v1/runs/:id/events sanitized consumer DTO", () => {
     expect(res.json().sourceActivity).toMatchObject({ version: "source-activity.v1", citedSources: null });
     expect(res.json().sourceActivity.discoveredSources).toBe(0);
     expect(res.json().sourceActivity.readSources).toBe(0);
+  });
+
+  it("serves versioned source-read context over HTTP and keeps private uploads generic", async () => {
+    const { token, accountId } = await authed();
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/runs",
+      headers: { authorization: `Bearer ${token}`, "idempotency-key": crypto.randomUUID() },
+      payload: { question: "best laptop under 2k", routeMode: "fixture" },
+    });
+    expect(created.statusCode).toBe(200);
+    const runId = created.json().runId as string;
+    const sourceRead = (canonicalLocator: string, title: string, state: "read" | "unavailable") => ({
+      operationId: crypto.randomUUID(), sourceHandle: crypto.randomUUID(), outcome: state === "read" ? "successful_body" : "unavailable_status",
+      sourceRead: sourceReadPublicPayload({ canonicalLocator, title }, state),
+    });
+    await emitEvent(pool, {
+      runId, accountId, type: "source_read", phase: "researching", summary: "Source reading finished.",
+      payload: sourceRead("https://nist.gov/publications/x", "NIST guidance", "read"),
+    });
+    await emitEvent(pool, {
+      runId, accountId, type: "source_unreadable", phase: "researching", summary: "The source could not provide readable evidence.",
+      payload: sourceRead("https://broken.example/docs", "Broken docs", "unavailable"),
+    });
+    await emitEvent(pool, {
+      runId, accountId, type: "source_read", phase: "researching", summary: "Source reading finished.",
+      payload: sourceRead("attachment://private-upload-id", "Payroll 2026.pdf", "read"),
+    });
+
+    const res = await app.inject({ method: "GET", url: `/v1/runs/${runId}/events?after=0`, headers: { authorization: `Bearer ${token}` } });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { events: Array<{ activity: Record<string, unknown> | null }> };
+    const activities = body.events.map((e) => e.activity).filter(Boolean);
+    const read = activities.find((a) => a?.sourceTitle === "NIST guidance");
+    expect(read).toMatchObject({ kind: "source_reading", label: "Reading a source", sourceTitle: "NIST guidance", sourceDomain: "nist.gov" });
+    const unreadable = activities.find((a) => a?.sourceTitle === "Broken docs");
+    expect(unreadable).toMatchObject({ kind: "source_unreadable", label: "Could not read a source", sourceTitle: "Broken docs", sourceDomain: "broken.example" });
+    // The private upload keeps its generic state and exposes no filename, locator, or id.
+    const privateRead = activities.filter((a) => a?.kind === "source_reading");
+    expect(privateRead.some((a) => a?.sourceTitle === null && a?.sourceDomain === null)).toBe(true);
+    const raw = res.body;
+    expect(raw).not.toMatch(/Payroll|attachment|private-upload-id|sourceRead|sourceHandle|operationId|"outcome"/);
+    expect(raw).not.toMatch(/nist\.gov\/publications|broken\.example\/docs/);
   });
 });

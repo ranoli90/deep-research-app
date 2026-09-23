@@ -213,4 +213,30 @@ describe("research activity from sanitized events", () => {
       expect(src).not.toMatch(/TYPE_LABELS/);
     }
   });
+
+  it("adopts versioned source context and keeps an unreadable read distinct from a successful one", () => {
+    const events = [
+      evt(1, "source_reading", { phase: "researching", sourceTitle: "NIST guidance", sourceDomain: "nist.gov", createdAt: "2026-09-18T12:00:00.000Z" }),
+      evt(2, "source_unreadable", { phase: "researching", sourceTitle: "Broken docs", sourceDomain: "broken.example", createdAt: "2026-09-18T12:00:10.000Z" }),
+      evt(3, "writing", { phase: "writing", createdAt: "2026-09-18T12:00:20.000Z" }),
+    ];
+    const visible = visibleResearchEvents(events);
+    expect(visible.map((e) => e.label)).toEqual(["Reading a source", "Could not read a source", "Writing the answer"]);
+    expect(visible[0]?.detail).toBe("NIST guidance · nist.gov");
+    expect(visible[1]?.detail).toBe("Broken docs · broken.example");
+    expect(labelResearchEvent(events[1]!)).toEqual({ label: "Could not read a source", detail: "Broken docs · broken.example" });
+    // A failed read is not a researched source; only the successful read counts.
+    expect(collapseResearchActivity({ events, lifecycle: "terminal", outcome: "completed" }).summary).toBe("Researched 1 source · 20s ›");
+  });
+
+  it("keeps private source reads generic and never invents a title or domain", () => {
+    const events = [
+      evt(1, "source_reading", { phase: "researching", sourceTitle: null, sourceDomain: null }),
+      evt(2, "source_unreadable", { phase: "researching", sourceTitle: null, sourceDomain: null }),
+    ];
+    const visible = visibleResearchEvents(events);
+    expect(visible.map((e) => e.label)).toEqual(["Reading a source", "Could not read a source"]);
+    expect(visible.every((e) => e.detail === null && e.sourceTitle === null && e.sourceDomain === null)).toBe(true);
+    expect(JSON.stringify(visible)).not.toMatch(/attachment|Payroll|filename|\.pdf|https?:\/\//i);
+  });
 });

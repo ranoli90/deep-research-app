@@ -9,6 +9,7 @@ import {
   type PublicActivityKind,
   type SanitizedRunEvent,
 } from "@deep/contracts";
+import { readSourceReadPublic, type SourceReadPublicState } from "./source-read-public.js";
 
 export {
   PUBLIC_ACTIVITY_FALLBACK_PHASE,
@@ -62,6 +63,13 @@ const TYPE_TO_KIND: Record<string, PublicActivityKind> = {
   research_unresolved: "plan_pivot",
 };
 
+/** Honest consumer kind for the versioned source-read-public.v1 state. */
+const SOURCE_READ_STATE_TO_KIND: Record<SourceReadPublicState, PublicActivityKind> = {
+  discovered: "sources_found",
+  read: "source_reading",
+  unavailable: "source_unreadable",
+};
+
 /** Consumer-safe needed-detail text. Never copy URLs, prompts, or private markers into the label. */
 function consumerClarificationLabel(summary: string): string {
   const text = summary.trim().replace(/\s+/g, " ");
@@ -96,23 +104,35 @@ export function toPublicActivity(event: {
   payload?: Record<string, unknown>;
 }): PublicActivity | null {
   if (PRIVATE_TYPES.has(event.type.toLowerCase())) return null;
-  if (PRIVATE.test(event.publicSummary) || PRIVATE.test(JSON.stringify(event.payload ?? {}))) return null;
-  const kind = TYPE_TO_KIND[event.type] ?? (/search/i.test(event.type) ? "searching" : null);
+  const sourceRead = readSourceReadPublic(event.payload);
+  // The versioned object is a validated public contract whose fields are gated below; raw legacy payload fields stay under the blanket scan.
+  const legacyPayload = event.payload ? { ...event.payload, sourceRead: undefined } : event.payload;
+  if (PRIVATE.test(event.publicSummary) || PRIVATE.test(JSON.stringify(legacyPayload ?? {}))) return null;
+  let kind = TYPE_TO_KIND[event.type] ?? (/search/i.test(event.type) ? "searching" : null);
+  if (sourceRead) kind = SOURCE_READ_STATE_TO_KIND[sourceRead.state];
+  // Historic source_read events predate the versioned payload; a non-success outcome is never a successful read.
+  else if (kind === "source_reading") {
+    const outcome = event.payload?.outcome;
+    if (typeof outcome === "string" && outcome !== "successful_body") kind = "source_unreadable";
+  }
   if (!kind) return null;
   const countRaw = event.payload?.count;
   const count =
     typeof countRaw === "number" && Number.isFinite(countRaw) && countRaw >= 0 ? Math.floor(countRaw) : null;
-  const titleRaw = event.payload?.title;
+  const titleRaw = sourceRead ? sourceRead.sourceTitle : event.payload?.title;
   const title =
     typeof titleRaw === "string" && titleRaw.trim() && !PRIVATE.test(titleRaw) && !/https?:\/\//i.test(titleRaw)
       ? titleRaw.trim()
       : null;
+  const domainRaw = sourceRead ? sourceRead.sourceDomain : publicSourceHostFromText(event.publicSummary);
+  // Hostnames are gated by the publicSourceUrl contract when produced; re-check the shape at the consumer boundary.
+  const sourceDomain = typeof domainRaw === "string" && /^[a-z0-9.-]+$/i.test(domainRaw) ? domainRaw : null;
   return {
     kind,
     label: kind === "clarification" ? consumerClarificationLabel(event.publicSummary) : PUBLIC_ACTIVITY_LABELS[kind],
     phase: publicActivityPhase(event.phase),
     count,
-    sourceDomain: publicSourceHostFromText(event.publicSummary),
+    sourceDomain,
     sourceTitle: title,
     createdAt: event.createdAt,
   };

@@ -7,6 +7,12 @@ import {
   publicSourceUrl,
 } from "@deep/contracts";
 import { toPublicActivity, toSanitizedRunEvent } from "../src/modules/public-activity.js";
+import {
+  SOURCE_READ_PUBLIC_VERSION,
+  isPublicWebSource,
+  readSourceReadPublic,
+  sourceReadPublicPayload,
+} from "../src/modules/source-read-public.js";
 
 const row = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -170,3 +176,76 @@ describe("public research activity", () => {
     })?.sourceDomain).toBe("nist.gov");
   });
 });
+
+describe("source-read-public.v1 contract", () => {
+  it("exposes stored public-web title/domain and keeps private supplied documents generic", () => {
+    expect(isPublicWebSource({ canonicalLocator: "https://vendor.example/docs", title: "Vendor docs" })).toBe(true);
+    expect(isPublicWebSource({ canonicalLocator: "https://10.1.2.3/secret", title: "intranet" })).toBe(false);
+    expect(isPublicWebSource({ canonicalLocator: "attachment://abc", title: "payroll.pdf", sourceType: "supplied-document" })).toBe(false);
+    expect(isPublicWebSource({ canonicalLocator: "attachment://abc", title: "payroll.pdf" })).toBe(false);
+
+    const read = sourceReadPublicPayload({ canonicalLocator: "https://vendor.example/docs", title: "Vendor docs" }, "read");
+    expect(read).toEqual({ version: SOURCE_READ_PUBLIC_VERSION, state: "read", sourceTitle: "Vendor docs", sourceDomain: "vendor.example" });
+    const unavailable = sourceReadPublicPayload({ canonicalLocator: "https://vendor.example/docs", title: "Vendor docs" }, "unavailable");
+    expect(unavailable).toMatchObject({ state: "unavailable", sourceTitle: "Vendor docs", sourceDomain: "vendor.example" });
+    const privateDoc = sourceReadPublicPayload(
+      { canonicalLocator: "attachment://abc", title: "Payroll 2026.pdf", sourceType: "supplied-document" }, "read");
+    expect(privateDoc).toMatchObject({ state: "read", sourceTitle: null, sourceDomain: null });
+    expect(JSON.stringify(privateDoc)).not.toMatch(/Payroll|attachment|abc/);
+    // A public title that is itself a URL or private marker is dropped; the domain is still honest.
+    expect(sourceReadPublicPayload({ canonicalLocator: "https://vendor.example/docs", title: "https://intranet.example/secret" }, "read"))
+      .toMatchObject({ sourceTitle: null, sourceDomain: "vendor.example" });
+    expect(sourceReadPublicPayload({ canonicalLocator: "https://vendor.example/docs", title: "prompt: system message" }, "read"))
+      .toMatchObject({ sourceTitle: null, sourceDomain: "vendor.example" });
+  });
+
+  it("reads the versioned payload back and refuses legacy or malformed payloads", () => {
+    expect(readSourceReadPublic({ sourceRead: { version: SOURCE_READ_PUBLIC_VERSION, state: "read", sourceTitle: "A", sourceDomain: "a.com" } }))
+      .toMatchObject({ state: "read" });
+    expect(readSourceReadPublic({ outcome: "successful_body", sourceHandle: "x" })).toBeNull();
+    expect(readSourceReadPublic({ sourceRead: { version: "source-read-public.v0", state: "read", sourceTitle: null, sourceDomain: null } })).toBeNull();
+    expect(readSourceReadPublic({ sourceRead: { version: SOURCE_READ_PUBLIC_VERSION, state: "nonsense", sourceTitle: null, sourceDomain: null } })).toBeNull();
+    expect(readSourceReadPublic(null)).toBeNull();
+  });
+
+  it("maps the honest versioned state to the consumer kind and never a failed read to success", () => {
+    const publicRead = { sourceRead: sourceReadPublicPayload({ canonicalLocator: "https://nist.gov/x", title: "NIST guidance" }, "read") };
+    expect(toPublicActivity({ type: "source_read", publicSummary: "Source reading finished.", phase: "researching", createdAt: "2026-09-18T00:00:00Z", payload: publicRead }))
+      .toMatchObject({ kind: "source_reading", label: "Reading a source", sourceTitle: "NIST guidance", sourceDomain: "nist.gov" });
+
+    const unavailable = { sourceRead: sourceReadPublicPayload({ canonicalLocator: "https://nist.gov/x", title: "NIST guidance" }, "unavailable") };
+    expect(toPublicActivity({ type: "source_read", publicSummary: "The source could not provide readable evidence.", phase: "researching", createdAt: "2026-09-18T00:00:00Z", payload: unavailable }))
+      .toMatchObject({ kind: "source_unreadable", label: "Could not read a source", sourceTitle: "NIST guidance", sourceDomain: "nist.gov" });
+
+    const privateDoc = { sourceRead: sourceReadPublicPayload({ canonicalLocator: "attachment://abc", title: "Payroll 2026.pdf", sourceType: "supplied-document" }, "read") };
+    const privateActivity = toPublicActivity({ type: "source_read", publicSummary: "Source reading finished.", phase: "researching", createdAt: "2026-09-18T00:00:00Z", payload: privateDoc });
+    expect(privateActivity).toMatchObject({ kind: "source_reading", sourceTitle: null, sourceDomain: null });
+    expect(JSON.stringify(privateActivity)).not.toMatch(/Payroll|attachment|abc/);
+
+    // A validated public domain is honest context even if its text trips the raw private-marker regex.
+    expect(toPublicActivity({
+      type: "source_read", publicSummary: "Source reading finished.", phase: "researching", createdAt: "2026-09-18T00:00:00Z",
+      payload: { sourceRead: { version: SOURCE_READ_PUBLIC_VERSION, state: "read", sourceTitle: null, sourceDomain: "password-reset.example.com" } },
+    })).toMatchObject({ kind: "source_reading", sourceDomain: "password-reset.example.com" });
+  });
+
+  it("keeps legacy source_read readers honest and invents no source for old events", () => {
+    // No versioned payload and no source id: state and identity stay unknown, never a fabricated source.
+    const legacyUnknown = toPublicActivity({ type: "source_read", publicSummary: "Source reading finished.", phase: "researching", createdAt: "2026-09-18T00:00:00Z" });
+    expect(legacyUnknown).toMatchObject({ kind: "source_reading", sourceTitle: null, sourceDomain: null });
+    expect(toPublicActivity({
+      type: "source_read", publicSummary: "The source could not provide readable evidence.", phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z", payload: { operationId: "11111111-1111-4111-8111-111111111111", sourceHandle: "22222222-2222-4222-8222-222222222222", outcome: "unavailable_status" },
+    })).toMatchObject({ kind: "source_unreadable", sourceTitle: null, sourceDomain: null });
+    expect(toPublicActivity({
+      type: "source_read", publicSummary: "Source reading finished.", phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z", payload: { outcome: "successful_body" },
+    })).toMatchObject({ kind: "source_reading" });
+    // Legacy opened_source keeps deriving the public host from summary text only.
+    expect(toPublicActivity({
+      type: "opened_source", publicSummary: "Opened https://nist.gov/publications/x", phase: "researching",
+      createdAt: "2026-09-18T00:00:00Z",
+    })).toMatchObject({ kind: "source_reading", sourceDomain: "nist.gov", sourceTitle: null });
+  });
+});
+

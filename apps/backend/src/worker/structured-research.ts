@@ -88,10 +88,9 @@ export async function processStructuredResearch(pool:pg.Pool,config:AppConfig,se
       })) break;
       const batch=handles.slice(i,i+CONCURRENT_SOURCE_READS);
       const settled=await Promise.allSettled(batch.map(async(sourceHandle)=>{
-        const read=await executeSourceRead(config,session,{...args,taskId,proposal:{
+        // executeSourceRead persists the honest source_read/source_unreadable event itself.
+        await executeSourceRead(config,session,{...args,taskId,proposal:{
           rationale,action:{type:"fetch",sourceHandle,questionKeys}}});
-        if(read.kind!=="read") await session.write((db)=>emitEvent(db,{runId:args.runId,accountId:args.accountId,type:"source_unreadable",phase:"researching",
-          summary:"A source could not be read; research continues with remaining evidence.",payload:{sourceHandle,reason:read.kind==="blocked"?read.reason:"source_read_outcome_unknown"}}));
       }));
       const fatal=settled.find((r):r is PromiseRejectedResult=>r.status==="rejected");
       if(fatal)throw fatal.reason;

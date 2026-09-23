@@ -8,7 +8,8 @@ import { CreateRunRequestSchema } from "@deep/contracts";
 import { createPool, migrate, withTx } from "../src/platform/db.js";
 import { createDevSession, deleteAccount, grantConsent } from "../src/modules/access.js";
 import { admitRun } from "../src/modules/run-admission.js";
-import { claimLease, getBrief, getRun } from "../src/modules/runs.js";
+import { claimLease, getBrief, getRun, listEvents } from "../src/modules/runs.js";
+import { toSanitizedRunEvent } from "../src/modules/public-activity.js";
 import { briefPlanningState } from "../src/ports/model.js";
 import { fencedSession, LostWorkerLease, type FencedSession } from "../src/worker/fenced-session.js";
 import { loadConfig } from "../src/platform/config.js";
@@ -481,6 +482,27 @@ describe("Phase A durable source retrieval",()=>{
   return {receipt:{requestedUrl:url,finalUrl:url,redirectChain:[],status:200,mime:"text/plain",retrievedAt:"2026-09-19T10:00:00.000Z",outcome:"successful_body" as const},bytes,
    extraction:{version:"utf8-notes-v1" as const,digest:createHash("sha256").update(bytes).digest("hex"),status:"partial" as const,warnings:[],blocks:[{kind:"text" as const,locator:"block:0",text,rows:[]}]}};
  }
+ it("persists honest versioned source context and never reports an unreadable source as read",()=>runCase(async x=>{
+  const c=await setup(x);
+  const vendor=c.args.proposal.action.sourceHandle;
+  const broken=await x.session.write(db=>insertSource(db,{...x,locator:"https://broken.example/docs",title:"Broken docs",publisher:"Broken",originCluster:"broken.example"}));
+  vi.spyOn(sourceReader,"readSource").mockImplementation(async url=>url.includes("broken.example")
+    ? {receipt:{requestedUrl:url,finalUrl:url,redirectChain:[],status:404,mime:"text/plain",retrievedAt:"2026-09-19T10:00:00.000Z",outcome:"unavailable_status" as const},bytes:Buffer.from("not found")}
+    : readable(url));
+  expect(await executeSourceRead(c.config,x.session,c.args)).toMatchObject({kind:"read",readable:true});
+  expect(await executeSourceRead(c.config,x.session,{...c.args,proposal:{...c.args.proposal,action:{...c.args.proposal.action,sourceHandle:broken}}})).toMatchObject({kind:"read",readable:false});
+  const events=await listEvents(pool,x.runId,0);
+  const readEvent=events.find(e=>e.type==="source_read"&&JSON.stringify(e.payload).includes(vendor));
+  const unreadableEvent=events.find(e=>e.type==="source_unreadable"&&JSON.stringify(e.payload).includes(broken));
+  expect(readEvent).toBeDefined();
+  expect(unreadableEvent).toBeDefined();
+  expect((readEvent!.payload as {sourceRead:unknown}).sourceRead).toMatchObject({version:"source-read-public.v1",state:"read",sourceTitle:"Vendor docs",sourceDomain:"vendor.example"});
+  expect((unreadableEvent!.payload as {sourceRead:unknown}).sourceRead).toMatchObject({version:"source-read-public.v1",state:"unavailable",sourceTitle:"Broken docs",sourceDomain:"broken.example"});
+  const sanitize=(e:typeof events[number])=>toSanitizedRunEvent({id:e.id,runId:x.runId,sequence:Number(e.sequence),type:e.type,public_summary:e.public_summary,phase:e.phase,created_at:e.created_at,payload:e.payload});
+  expect(sanitize(readEvent!).activity).toMatchObject({kind:"source_reading",label:"Reading a source",sourceTitle:"Vendor docs",sourceDomain:"vendor.example"});
+  expect(sanitize(unreadableEvent!).activity).toMatchObject({kind:"source_unreadable",label:"Could not read a source",sourceTitle:"Broken docs",sourceDomain:"broken.example"});
+  expect(JSON.stringify([sanitize(readEvent!),sanitize(unreadableEvent!)])).not.toMatch(/vendor\.example\/docs|broken\.example\/docs|outcome|sourceHandle|operationId|sourceRead/);
+ }));
  it("a thrown source timeout degrades independently and never resends the failed read",()=>runCase(async x=>{
   const c=await setup(x);
   const other=await x.session.write(db=>insertSource(db,{...x,locator:"https://valid.example/docs",title:"Valid",publisher:"Valid",originCluster:"valid.example"}));
