@@ -38,6 +38,14 @@ export type AppConfig = {
   writingCancelWindowMs: number;
   /** Historical diagnostic chooser only; production uses persisted structuredStrategy. */
   liveControllerKind: "baseline" | "adaptive";
+  /** R12 attachment storage admission. Allowances are 0 in production when unset (fail closed). */
+  attachmentAccountByteQuota: number;
+  attachmentAccountObjectQuota: number;
+  attachmentAdmissionLimit: number;
+  attachmentAdmissionWindowMs: number;
+  attachmentGlobalByteQuota: number;
+  attachmentGlobalObjectQuota: number;
+  attachmentReservationTtlMs: number;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -142,7 +150,24 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     consentPolicyVersion: env.CONSENT_POLICY_VERSION ?? CONSENT_POLICY_VERSION,
     writingCancelWindowMs: integerConfig(env, "WRITING_CANCEL_WINDOW_MS", 150),
     liveControllerKind: env.LIVE_CONTROLLER_KIND === "baseline" ? "baseline" : "adaptive",
+    attachmentAccountByteQuota: quotaConfig(env, "ATTACHMENT_ACCOUNT_BYTE_QUOTA", 256 * 1024 * 1024, nodeEnv === "production"),
+    attachmentAccountObjectQuota: quotaConfig(env, "ATTACHMENT_ACCOUNT_OBJECT_QUOTA", 500, nodeEnv === "production"),
+    attachmentAdmissionLimit: quotaConfig(env, "ATTACHMENT_ADMISSION_LIMIT", 60, nodeEnv === "production"),
+    attachmentAdmissionWindowMs: integerConfig(env, "ATTACHMENT_ADMISSION_WINDOW_MS", 60_000, 1),
+    attachmentGlobalByteQuota: quotaConfig(env, "ATTACHMENT_GLOBAL_BYTE_QUOTA", 8 * 1024 * 1024 * 1024, nodeEnv === "production"),
+    attachmentGlobalObjectQuota: quotaConfig(env, "ATTACHMENT_GLOBAL_OBJECT_QUOTA", 50_000, nodeEnv === "production"),
+    attachmentReservationTtlMs: integerConfig(env, "ATTACHMENT_RESERVATION_TTL_MS", 15 * 60_000, 1),
   };
+}
+
+/**
+ * R12 storage allowance. Staging/development get a finite safe default; a
+ * production value must be explicit. A missing production allowance becomes 0,
+ * which denies every upload rather than starting unlimited.
+ */
+function quotaConfig(env: NodeJS.ProcessEnv, name: string, stagingDefault: number, production: boolean): number {
+  if (env[name] === undefined && production) return 0;
+  return integerConfig(env, name, stagingDefault);
 }
 
 function integerConfig(env: NodeJS.ProcessEnv, name: string, fallback: number, min = 0, max = Number.MAX_SAFE_INTEGER): number {

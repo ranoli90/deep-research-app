@@ -96,6 +96,14 @@ function responseCode(body: unknown): string | null {
     : null;
 }
 
+/**
+ * Vetted consumer copy for server denial codes that must not surface raw
+ * transport text. Unknown codes keep the server message.
+ */
+const DENIAL_COPY: Record<string, string> = {
+  storage_quota_exceeded: "This account has reached its document storage limit. Your selected file is still on this device. Delete a saved document or use Check or withdraw before trying again.",
+};
+
 export function isExpiredSession(err: unknown): boolean {
   return err instanceof ApiError && err.status === 401;
 }
@@ -132,7 +140,7 @@ async function req(path: string, init: RequestInit & { token?: string; scope?: "
         // same-principal credential; the original request remains unresolved.
         if (requests.currentCredential() !== credential || await memberCredentialProvider(credential, true) !== credential) throw new SupersededRequest();
       }
-      throw new ApiError(res.status, body.message ?? `Request failed (${res.status})`, responseCode(body));
+      throw new ApiError(res.status, (responseCode(body) && DENIAL_COPY[responseCode(body)!]) ?? body.message ?? `Request failed (${res.status})`, responseCode(body));
     }
     return body;
   } catch (e) {

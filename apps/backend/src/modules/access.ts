@@ -262,6 +262,14 @@ export async function deleteAccount(db: Queryable, accountId: string): Promise<v
       raw_bytes=NULL,extraction=NULL,extracted_text = NULL, processing_state = 'deleted' WHERE account_id = $1`,
     [accountId],
   );
+  // R12: a deleted account cannot hold storage. Committed bytes drop out of the
+  // derived usage because every attachment is now soft-deleted; release any live
+  // reservation so it does not linger until expiry.
+  await db.query(
+    `UPDATE attachment_storage_reservations SET state='released',settled_at=now()
+     WHERE account_id=$1 AND state='reserved'`,
+    [accountId],
+  );
   await db.query(
     `INSERT INTO tombstones (account_id, object_kind, object_id, reason)
      SELECT $1, 'account', $1, 'account_deletion'

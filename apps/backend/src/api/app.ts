@@ -95,7 +95,7 @@ import { modelPolicy } from "../ports/model-policy.js";
 import { admittedRunOptions, assertRouteAdmission } from "../modules/run-route-admission.js";
 import { z } from "zod";
 import { resolveAdmission, VerificationRecoverySchema } from "../modules/admission-recovery.js";
-import { attachmentUploadReceipt, AttachmentUploadConflict, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
+import { attachmentUploadReceipt, AttachmentStorageDenied, AttachmentUploadConflict, releaseAttachmentReservation, reserveAttachmentUpload, storeAttachment, validateAttachmentBytes } from "../modules/attachments.js";
 import { drainFileDeletions } from "../modules/file-deletion.js";
 import { verifySupabaseIdentity } from "../adapters/auth/supabase.js";
 import { verifyClerkIdentity } from "../adapters/auth/clerk.js";
@@ -1451,6 +1451,24 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return { format: "markdown", markdown: md };
   });
 
+  /**
+   * R12 storage admission. A denial is one public code with consumer copy; the
+   * selected file stays on the device because no upload was stored. Bytes are
+   * never written before this reservation succeeds.
+   */
+  async function reserveUpload(reply: FastifyReply, accountId: string, sizeBytes: number, idempotencyKey?: string) {
+    try { return await reserveAttachmentUpload(pool, config, { accountId, sizeBytes, idempotencyKey }); }
+    catch (error) {
+      if (error instanceof AttachmentStorageDenied) {
+        reply.code(413).send(err("storage_quota_exceeded",
+          "This account has reached its document storage limit. Your selected file is still on this device and was not uploaded. Delete a saved document or use Check or withdraw before trying again.",
+          crypto.randomUUID(), "The selected file remains on this device; no upload was stored."));
+        return null;
+      }
+      throw error;
+    }
+  }
+
   app.post("/v1/attachments", async (req, reply) => {
     const a = await auth(req as never);
     if (!a || a.deleted) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
@@ -1459,17 +1477,28 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     if (!parsed.success) return reply.code(400).send(err("invalid_input", "Paste text/Markdown notes here; PDF requires a binary file upload.", crypto.randomUUID()));
     const { filename, mime, text } = parsed.data;
     const bytes = Buffer.from(text, "utf8");
-    try { validateAttachmentBytes(bytes, mime, filename); }
-    catch { return reply.code(400).send(err("invalid_input", "Invalid file name, text or size.", crypto.randomUUID())); }
     const key = z.string().uuid().optional().safeParse(req.headers["idempotency-key"]);
     if (!key.success) return reply.code(400).send(err("invalid_input", "Upload request key must be a UUID.", crypto.randomUUID()));
+    const reservation = await reserveUpload(reply, a.accountId, bytes.length, key.data);
+    if (!reservation) return reply;
+    try { validateAttachmentBytes(bytes, mime, filename); }
+    catch {
+      if (!reservation.reused) await releaseAttachmentReservation(pool, reservation.id);
+      return reply.code(400).send(err("invalid_input", "Invalid file name, text or size.", crypto.randomUUID()));
+    }
     let id: string | null;
-    try { id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes, extractedText: text, idempotencyKey: key.data }); }
+    try { id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes, extractedText: text, idempotencyKey: key.data, reservationId: reservation.id }); }
     catch (error) {
-      if (error instanceof AttachmentUploadConflict) return reply.code(409).send(err("idempotency_conflict", "Upload request was already used for different or deleted content.", crypto.randomUUID()));
+      if (error instanceof AttachmentUploadConflict) {
+        if (!reservation.reused) await releaseAttachmentReservation(pool, reservation.id);
+        return reply.code(409).send(err("idempotency_conflict", "Upload request was already used for different or deleted content.", crypto.randomUUID()));
+      }
       throw error;
     }
-    if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    if (!id) {
+      if (!reservation.reused) await releaseAttachmentReservation(pool, reservation.id);
+      return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    }
     const receipt = await attachmentUploadReceipt(pool, a.accountId, id);
     if (!receipt) return reply.code(404).send(err("permission_denied", "File is unavailable.", crypto.randomUUID()));
     return receipt;
@@ -1481,18 +1510,29 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const mime = req.headers["x-document-mime"], encodedName = req.headers["x-file-name"];
     if (!Buffer.isBuffer(req.body) || typeof mime !== "string" || typeof encodedName !== "string")
       return reply.code(400).send(err("invalid_input", "Binary body and file metadata required.", crypto.randomUUID()));
-    let filename: string;
-    try { filename = decodeURIComponent(encodedName); validateAttachmentBytes(req.body, mime, filename); }
-    catch { return reply.code(400).send(err("invalid_input", "Unsupported or invalid file bytes, name or size.", crypto.randomUUID())); }
     const key = z.string().uuid().optional().safeParse(req.headers["idempotency-key"]);
     if (!key.success) return reply.code(400).send(err("invalid_input", "Upload request key must be a UUID.", crypto.randomUUID()));
+    const reservation = await reserveUpload(reply, a.accountId, req.body.length, key.data);
+    if (!reservation) return reply;
+    let filename: string;
+    try { filename = decodeURIComponent(encodedName); validateAttachmentBytes(req.body, mime, filename); }
+    catch {
+      if (!reservation.reused) await releaseAttachmentReservation(pool, reservation.id);
+      return reply.code(400).send(err("invalid_input", "Unsupported or invalid file bytes, name or size.", crypto.randomUUID()));
+    }
     let id: string | null;
-    try { id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes: req.body, idempotencyKey: key.data }); }
+    try { id = await storeAttachment(pool, { accountId: a.accountId, filename, mime, bytes: req.body, idempotencyKey: key.data, reservationId: reservation.id }); }
     catch (error) {
-      if (error instanceof AttachmentUploadConflict) return reply.code(409).send(err("idempotency_conflict", "Upload request was already used for different or deleted content.", crypto.randomUUID()));
+      if (error instanceof AttachmentUploadConflict) {
+        if (!reservation.reused) await releaseAttachmentReservation(pool, reservation.id);
+        return reply.code(409).send(err("idempotency_conflict", "Upload request was already used for different or deleted content.", crypto.randomUUID()));
+      }
       throw error;
     }
-    if (!id) return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    if (!id) {
+      if (!reservation.reused) await releaseAttachmentReservation(pool, reservation.id);
+      return reply.code(401).send(err("permission_denied", "Sign in required.", crypto.randomUUID()));
+    }
     const receipt = await attachmentUploadReceipt(pool, a.accountId, id);
     if (!receipt) return reply.code(404).send(err("permission_denied", "File is unavailable.", crypto.randomUUID()));
     return reply.code(201).send(receipt);

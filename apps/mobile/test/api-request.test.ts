@@ -39,3 +39,7 @@ it("binary uploads preserve bytes, explicit content type and idempotency identit
  await api.attachBytes(token,"synthetic.pdf","application/pdf",new Uint8Array([0,128,255]),"upload-key");
  const init=transport.mock.calls[0]![1]!,headers=new Headers(init.headers);expect(headers.get("content-type")).toBe("application/octet-stream");expect(headers.get("authorization")).toBe(`Bearer ${token}`);expect(headers.get("idempotency-key")).toBe("upload-key");expect([...new Uint8Array(init.body as ArrayBuffer)]).toEqual([0,128,255]);
 });
+it("maps a storage quota denial to vetted consumer copy and keeps the exact code",async()=>{
+ const transport=vi.fn(async(_url:unknown,_init?:RequestInit)=>new Response(JSON.stringify({code:"storage_quota_exceeded",message:"raw server transport text"}),{status:413}));vi.stubGlobal("fetch",transport);
+ await expect(api.attachBytes(token,"note.txt","text/plain",new Uint8Array([1]))).rejects.toMatchObject({status:413,code:"storage_quota_exceeded",message:expect.stringContaining("still on this device")});
+});
